@@ -358,6 +358,9 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 - (void)stopLoading
 {
 	[webview stopLoading];
+	if ([[self proxy] _hasListeners:@"onStopBlackListUrl"]) {
+		[[self proxy] fireEvent:@"onStopBlackListUrl" withObject:@{@"url": [[[webview request] URL] absoluteString]}];
+	}
 }
 
 - (void)goBack
@@ -690,7 +693,6 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	NSString * scheme = [[newUrl scheme] lowercaseString];
 	if ([scheme hasPrefix:@"http"] || [scheme isEqualToString:@"ftp"]
 			|| [scheme isEqualToString:@"file"] || [scheme isEqualToString:@"app"]) {
-		DebugLog(@"[DEBUG] New scheme: %@",request);
         BOOL valid = !ignoreNextRequest;
         if ([scheme hasPrefix:@"http"]) {
             //UIWebViewNavigationTypeOther means we are either in a META redirect
