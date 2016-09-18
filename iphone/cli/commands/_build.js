@@ -1122,6 +1122,23 @@ iOSBuilder.prototype.configOptionWatchAppName = function configOptionWatchAppNam
 	};
 };
 
+iOSBuilder.prototype.getProvisioningProfile = function getProvisioningProfile(provisioning, target, uuid) {
+	function getPP(list, uuid) {
+		for (var i = 0, l = list.length; i < l; i++) {
+			if (list[i].uuid === uuid) {
+				list[i].getTaskAllow = !!list[i].getTaskAllow;
+				return list[i];
+			}
+		}
+	}
+
+	if (target === 'device') {
+		return getPP(provisioning.development, uuid);
+	} else if (target !== 'dist-appstore' && target !== 'dist-adhoc') {
+		return getPP(provisioning.distribution, uuid) || getPP(provisioning.adhoc, uuid);
+	}
+};
+
 /**
  * Defines the --watch-device-id option.
  *
@@ -1861,6 +1878,42 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 						logger.log();
 						process.exit(1);
 					}
+				}
+			},
+			
+			function validateEntitlements() {
+				// check if we use push notifications but don't have an entitlements file created
+				var pp = this.getProvisioningProfile(this.iosInfo.provisioning, this.target, this.cli.argv["pp-uuid"]);
+				var entitlementsFile = this.tiapp.name + '.entitlements';
+				
+				// TODO: What is with Alloy's app/platform directory?
+				var hasEntitlementsFile = fs.existsSync(path.join(this.projectDir, 'platform', 'ios', entitlementsFile)) || fs.existsSync(path.join(this.projectDir, 'platform', 'iphone', entitlementsFile))
+																
+				// TODO: What happens when there is a file but the content does not have the aps-environment key?
+				if (!hasEntitlementsFile && pp && pp.apsEnvironment) {
+					var usesAlloy = false;
+					
+					this.tiapp.plugins && Object.keys(this.tiapp.plugins).forEach(function (plugin) {
+						if (this.tiapp.plugins[plugin].value == "ti.alloy") {
+							usesAlloy = true;
+						}
+					}, this);
+					
+					var platformDir = usesAlloy ? "app/platform/ios" : "platform/iphone";
+										
+					logger.error(__('Found push-capabilities but no entitlements file found.'));
+					logger.error(__('Please create a new file called ' + this.tiapp.name + '.entitlements in ' + platformDir + ' with the following content:') + '\n');
+
+					logger.log('<?xml version="1.0" encoding="UTF-8"?>'.grey);
+					logger.log('<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'.grey);
+					logger.log('<plist version="1.0">'.grey);
+					logger.log('<dict>'.grey);
+					logger.log('	<key>aps-environment</key>'.grey);
+					logger.log(('	<string>' + pp.apsEnvironment + '</string>').grey);
+					logger.log('</dict>'.grey);
+					logger.log('</plist>'.grey);
+
+					process.exit(1);
 				}
 			},
 
@@ -3377,22 +3430,7 @@ iOSBuilder.prototype.writeEntitlementsPlist = function writeEntitlementsPlist() 
 	// allow the project to have its own custom entitlements
 	var entitlementsFile = path.join(this.projectDir, 'Entitlements.plist'),
 		plist = new appc.plist(),
-		pp = (function (provisioning, target, uuid) {
-			function getPP(list, uuid) {
-				for (var i = 0, l = list.length; i < l; i++) {
-					if (list[i].uuid === uuid) {
-						list[i].getTaskAllow = !!list[i].getTaskAllow;
-						return list[i];
-					}
-				}
-			}
-
-			if (target === 'device') {
-				return getPP(provisioning.development, uuid);
-			} else if (target !== 'dist-appstore' && target !== 'dist-adhoc') {
-				return getPP(provisioning.distribution, uuid) || getPP(provisioning.adhoc, uuid);
-			}
-		}(this.iosInfo.provisioning, this.target, this.provisioningProfileUUID));
+		pp = this.getProvisioningProfile(this.iosInfo.provisioning, this.target, this.provisioningProfileUUID);
 
 	// check if we have a custom entitlements plist file
 	if (fs.existsSync(entitlementsFile)) {
