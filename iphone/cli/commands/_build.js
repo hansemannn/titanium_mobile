@@ -1122,6 +1122,15 @@ iOSBuilder.prototype.configOptionWatchAppName = function configOptionWatchAppNam
 	};
 };
 
+/**
+ * Returns the correct provisioning profile for the provided target and UUID.
+ *
+ * @param {Object} provisioning - The list of provisioning profiles
+ * @param {String} target - The build-target (one of simulator, device, dist-appstore or dist-adhoc)
+ * @param {String} uuid - The UUID of the used provisiong profile
+ *
+ * @returns {Object}
+ */
 iOSBuilder.prototype.getProvisioningProfile = function getProvisioningProfile(provisioning, target, uuid) {
 	function getPP(list, uuid) {
 		for (var i = 0, l = list.length; i < l; i++) {
@@ -1882,26 +1891,8 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 			},
 			
 			function validateEntitlements() {
-				// check if we use push notifications but don't have an entitlements file created
-				var pp = this.getProvisioningProfile(this.iosInfo.provisioning, this.target, this.cli.argv["pp-uuid"]);
-				var entitlementsFile = this.tiapp.name + '.entitlements';
 				
-				// TODO: What is with Alloy's app/platform directory?
-				var hasEntitlementsFile = fs.existsSync(path.join(this.projectDir, 'platform', 'ios', entitlementsFile)) || fs.existsSync(path.join(this.projectDir, 'platform', 'iphone', entitlementsFile))
-																
-				// TODO: What happens when there is a file but the content does not have the aps-environment key?
-				if (!hasEntitlementsFile && pp && pp.apsEnvironment) {
-					var usesAlloy = false;
-					
-					this.tiapp.plugins && Object.keys(this.tiapp.plugins).forEach(function (plugin) {
-						if (this.tiapp.plugins[plugin].value == "ti.alloy") {
-							usesAlloy = true;
-						}
-					}, this);
-					
-					var platformDir = usesAlloy ? "app/platform/ios" : "platform/iphone";
-										
-					logger.error(__('Found push-capabilities but no entitlements file found.'));
+				function logEntitlementFile(pp) {
 					logger.error(__('Please create a new file called ' + this.tiapp.name + '.entitlements in ' + platformDir + ' with the following content:') + '\n');
 
 					logger.log('<?xml version="1.0" encoding="UTF-8"?>'.grey);
@@ -1912,8 +1903,41 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 					logger.log(('	<string>' + pp.apsEnvironment + '</string>').grey);
 					logger.log('</dict>'.grey);
 					logger.log('</plist>'.grey);
-
+					
 					process.exit(1);
+				}
+					
+				var pp = this.getProvisioningProfile(this.iosInfo.provisioning, this.target, this.cli.argv["pp-uuid"]);
+				var entitlementsFile = this.tiapp.name + '.entitlements';
+				var hasEntitlementsFile = fs.existsSync(path.join(this.projectDir, 'platform', 'ios', entitlementsFile)) || fs.existsSync(path.join(this.projectDir, 'platform', 'iphone', entitlementsFile))
+
+				var isAlloy = false;
+				
+				this.tiapp.plugins && Object.keys(this.tiapp.plugins).some(function (plugin) {
+					if (this.tiapp.plugins[plugin].value === "ti.alloy") {
+						isAlloy = true;
+						return true;
+					}
+				}, this);
+				
+				var platformDir = isAlloy ? "app/platform/ios" : "platform/iphone";
+																							
+				if (!hasEntitlementsFile && pp && pp.apsEnvironment) {
+																				
+					logger.error(__('Found push-capabilities but no entitlements file found.'));
+					logEntitlementFile(pp);
+				} else if (hasEntitlementsFile && pp && pp.apsEnvironment) {
+					var filepath = path.join(this.projectDir, 'platform', 'ios', entitlementsFile);
+					
+					if (!filepath) {
+						filepath = path.join(this.projectDir, 'platform', 'iphone', entitlementsFile);
+					}
+					
+					// No manual xml-parsing for now, do a simple string compare
+					if (fs.readFileSync(filepath).toString().indexOf("<key>aps-environment</key>") === -1) {
+						logger.error('Found entitlements-file, but aps-environment key is missing.');	
+						logEntitlementFile(pp);
+					}
 				}
 			},
 
