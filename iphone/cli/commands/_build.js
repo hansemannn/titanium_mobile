@@ -1892,7 +1892,7 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 			
 			function validateEntitlements() {
 				
-				function logEntitlementFile(pp) {
+				function logEntitlementFile(pp, platformDir) {
 					logger.error(__('Please create a new file called ' + this.tiapp.name + '.entitlements in ' + platformDir + ' with the following content:') + '\n');
 
 					logger.log('<?xml version="1.0" encoding="UTF-8"?>'.grey);
@@ -1922,10 +1922,9 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 				
 				var platformDir = isAlloy ? "app/platform/ios" : "platform/iphone";
 																							
-				if (!hasEntitlementsFile && pp && pp.apsEnvironment) {
-																				
+				if (!hasEntitlementsFile && pp && pp.apsEnvironment) {														
 					logger.error(__('Found push-capabilities but no entitlements file found.'));
-					logEntitlementFile(pp);
+					logEntitlementFile(pp, platformDir);
 				} else if (hasEntitlementsFile && pp && pp.apsEnvironment) {
 					var filepath = path.join(this.projectDir, 'platform', 'ios', entitlementsFile);
 					
@@ -1936,7 +1935,7 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 					// No manual xml-parsing for now, do a simple string compare
 					if (fs.readFileSync(filepath).toString().indexOf("<key>aps-environment</key>") === -1) {
 						logger.error('Found entitlements-file, but aps-environment key is missing.');	
-						logEntitlementFile(pp);
+						logEntitlementFile(pp, platformDir);
 					}
 				}
 			},
