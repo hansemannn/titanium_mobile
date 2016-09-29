@@ -930,6 +930,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 -(void)switchCamera:(id)args
 {
     ENSURE_TYPE(args, NSArray);
+    ENSURE_UI_THREAD(switchCamera,args);
     
     // TIMOB-17951
     if ([args objectAtIndex:0] == [NSNull null]) {
@@ -1868,9 +1869,11 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
                 [exportSession exportAsynchronouslyWithCompletionHandler:^{
                     switch (exportSession.status) {
+                        // If the export succeeds, return the URL of the proposed tmp-directory
                         case AVAssetExportSessionStatusCompleted:
-                            [self handleTrimmedVideo:exportSession.outputURL withDictionary:dictionary];
+                            [self handleTrimmedVideo:[NSURL URLWithString:outputURL] withDictionary:dictionary];
                             break;
+                        // If it fails, return the original image URL
                         default:
                             [self handleTrimmedVideo:mediaURL withDictionary:dictionary];
                             break;
