@@ -10,11 +10,15 @@
 
 #import <Foundation/Foundation.h>
 
-@interface TiLogServer : NSObject {
+@interface TiLogServer : NSObject <NSStreamDelegate> {
+    NSInputStream *inputStream;
+    NSOutputStream *outputStream;
 }
-+ (void)log:(NSString*)message;
-+ (void)startServer;
-+ (void)stopServer;
+
++ (id)sharedServer;
+- (void)log:(NSString*)message;
+- (void)startServer;
+- (void)stopServer;
 @end
 
 #endif /* TI_LOG_SERVER_H */

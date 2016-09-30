@@ -55,7 +55,7 @@ void TiLogMessage(NSString* str, ...) {
 	va_start(args, str);
 
 	NSString* message = [[[NSString alloc] initWithFormat:str arguments:args] autorelease];
-	[TiLogServer log:message];
+	[[TiLogServer sharedServer] log:message];
 
 	if ([[TiApp app] debugMode]) {
 #ifndef USE_JSCORE_FRAMEWORK
