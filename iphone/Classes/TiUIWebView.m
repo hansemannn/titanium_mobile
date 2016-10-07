@@ -780,6 +780,12 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
     if (disableTextSelection) {
         [webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitUserSelect='none';"];
     }
+
+    // Disable the context menu
+    BOOL disableContextMenu = [TiUtils boolValue:[[self proxy] valueForKey:@"disableContextMenu"] def:NO];
+    if (disableContextMenu) {
+        [webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitTouchCallout='none';"];
+    }
     
     [webView setNeedsDisplay];
     ignoreNextRequest = NO;

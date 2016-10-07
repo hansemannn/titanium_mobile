@@ -452,10 +452,21 @@ properties:
     platforms: [iphone, ipad]
     
   - name: disableTextSelection
-    summary: Determines whether the webview should not be able to select a range of text.
+    summary: Determines whether or not the webview should not be able to select a range of text.
     description: | 
         Set to `true` to disable the text-selection. Note that disabling the text-selection will
         also disable the contextual menu.
+    type: Boolean
+    default: false
+    platforms: [iphone, ipad]
+    since: "6.1.0"
+
+  - name: disableContextMenu
+    summary: |
+        Determines whether or not the webview should not be able to show the contextual menu 
+        when selecting a range of text.
+    description: | 
+        Set to `true` to disable the context menu from being used.
     type: Boolean
     default: false
     platforms: [iphone, ipad]
