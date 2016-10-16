@@ -891,6 +891,11 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	return proxySourceImp == subclassSourceImp;
 }
 
+-(void)emit:(id)args
+{
+	[self fireEvent:args];
+}
+
 -(void)fireEvent:(id)args
 {
 	NSString *type = nil;

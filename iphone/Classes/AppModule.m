@@ -199,6 +199,11 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	return NO;
 }
 
+-(void)emit:(id)args
+{
+	[self fireEvent:args];
+}
+
 -(void)fireEvent:(NSArray*)args
 {
 	if (appListeners!=nil)

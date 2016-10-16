@@ -21,9 +21,10 @@
 
 -(void)on:(NSArray*)args;
 -(void)off:(NSArray*)args;
+-(void)emit:(NSArray*)args;
 -(void)addEventListener:(NSArray*)args; // Deprecated
 -(void)removeEventListener:(NSArray*)args; // Deprecated
--(void)fireEvent:(NSArray*)args;
+-(void)fireEvent:(NSArray*)args; // Deprecated
 -(int)garbageCollect:(NSArray*)args;
 
 @property(nonatomic,readonly) NSString *id;

@@ -298,7 +298,8 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 
 
 
--(void)fireEvent:(id)args;
+-(void)emit:(id)args;
+-(void)fireEvent:(id)args; // Deprecated
 -(void)fireEvent:(NSString*)type withObject:(id)obj;
 
 //For UI events:
