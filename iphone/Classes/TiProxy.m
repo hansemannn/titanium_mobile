@@ -828,6 +828,11 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 
 -(void)addEventListener:(NSArray*)args
 {
+    [self on:args];
+}
+
+-(void)on:(NSArray*)args
+{
 	NSString *type = [args objectAtIndex:0];
 	id listener = [args objectAtIndex:1];
 	if (![listener isKindOfClass:[KrollWrapper class]] &&
@@ -852,8 +857,13 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 
 	[self _listenerAdded:type count:ourCallbackCount];
 }
-	  
+
 -(void)removeEventListener:(NSArray*)args
+{
+    [self off:args];
+}
+
+-(void)off:(NSArray*)args
 {
 	NSString *type = [args objectAtIndex:0];
 	KrollCallback* listener = [args objectAtIndex:1];

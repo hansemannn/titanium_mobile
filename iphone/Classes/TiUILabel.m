@@ -49,7 +49,7 @@
 - (BOOL)interactionDefault
 {
 	// by default, labels don't have any interaction unless you explicitly add
-	// it via addEventListener
+	// it via an event listener.
 	return NO;
 }
 

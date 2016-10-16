@@ -19,8 +19,10 @@
 #endif
 }
 
--(void)addEventListener:(NSArray*)args;
--(void)removeEventListener:(NSArray*)args;
+-(void)on:(NSArray*)args;
+-(void)off:(NSArray*)args;
+-(void)addEventListener:(NSArray*)args; // Deprecated
+-(void)removeEventListener:(NSArray*)args; // Deprecated
 -(void)fireEvent:(NSArray*)args;
 -(int)garbageCollect:(NSArray*)args;
 

@@ -3022,7 +3022,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		[context.krollContext invokeBlockOnThread:^{
 			[viewTemplate.events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, NSArray *listeners, BOOL *stop) {
 				[listeners enumerateObjectsUsingBlock:^(KrollWrapper *wrapper, NSUInteger idx, BOOL *stop) {
-					[self addEventListener:[NSArray arrayWithObjects:eventName, wrapper, nil]];
+					[self on:[NSArray arrayWithObjects:eventName, wrapper, nil]];
 				}];
 			}];
 		}];		

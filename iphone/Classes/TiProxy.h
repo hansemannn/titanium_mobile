@@ -291,8 +291,10 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 
 +(void)throwException:(NSString *) reason subreason:(NSString*)subreason location:(NSString *)location;
 -(void)throwException:(NSString *) reason subreason:(NSString*)subreason location:(NSString *)location;
--(void)addEventListener:(NSArray*)args;
--(void)removeEventListener:(NSArray*)args;
+-(void)on:(NSArray*)args;
+-(void)off:(NSArray*)args;
+-(void)addEventListener:(NSArray*)args; // Deprecated
+-(void)removeEventListener:(NSArray*)args; // Deprecated
 
 
 

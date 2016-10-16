@@ -78,16 +78,28 @@ static XHRBridge *xhrBridge = nil;
 	{
 		[tiModule fireEvent:name withObject:[event objectForKey:@"event"]];  
 	}
-	else if ([method isEqualToString:@"addEventListener"])
-	{
-		id listenerid = [event objectForKey:@"id"];
-		[tiModule addEventListener:[NSArray arrayWithObjects:name,listenerid,nil]];
-	}
-	else if ([method isEqualToString:@"removeEventListener"])
-	{
-		id listenerid = [event objectForKey:@"id"];
-		[tiModule removeEventListener:[NSArray arrayWithObjects:name,listenerid,nil]];
-	}
+    // Deprecated
+    else if ([method isEqualToString:@"addEventListener"])
+    {
+        id listenerid = [event objectForKey:@"id"];
+        [tiModule addEventListener:[NSArray arrayWithObjects:name,listenerid,nil]];
+    }
+    else if ([method isEqualToString:@"on"])
+    {
+        id listenerid = [event objectForKey:@"id"];
+        [tiModule on:[NSArray arrayWithObjects:name,listenerid,nil]];
+    }
+    // Deprecated
+    else if ([method isEqualToString:@"removeEventListener"])
+    {
+        id listenerid = [event objectForKey:@"id"];
+        [tiModule removeEventListener:[NSArray arrayWithObjects:name,listenerid,nil]];
+    }
+    else if ([method isEqualToString:@"off"])
+    {
+        id listenerid = [event objectForKey:@"id"];
+        [tiModule off:[NSArray arrayWithObjects:name,listenerid,nil]];
+    }
 	else if ([method isEqualToString:@"log"])
 	{
 		NSString *level = [event objectForKey:@"level"];
