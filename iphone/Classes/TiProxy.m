@@ -828,7 +828,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 
 -(void)addEventListener:(NSArray*)args
 {
-    [self on:args];
+	[self on:args];
 }
 
 -(void)on:(NSArray*)args
@@ -860,7 +860,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 
 -(void)removeEventListener:(NSArray*)args
 {
-    [self off:args];
+	[self off:args];
 }
 
 -(void)off:(NSArray*)args

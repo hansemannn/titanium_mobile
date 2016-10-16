@@ -110,12 +110,12 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)addEventListener:(NSArray*)args
 {
-    [self on:args];
+	[self on:args];
 }
 
 -(void)on:(NSArray*)args
 {
-    NSString *type = [args objectAtIndex:0];
+	NSString *type = [args objectAtIndex:0];
 	id listener = [args objectAtIndex:1];
 	
 	if (appListeners==nil)
@@ -150,7 +150,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)removeEventListener:(NSArray*)args
 {
-    [self off:args];
+	[self off:args];
 }
 
 -(void)off:(NSArray*)args
