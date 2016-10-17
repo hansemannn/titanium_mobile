@@ -293,13 +293,13 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 -(void)throwException:(NSString *) reason subreason:(NSString*)subreason location:(NSString *)location;
 -(void)on:(NSArray*)args;
 -(void)off:(NSArray*)args;
--(void)addEventListener:(NSArray*)args; // Deprecated
--(void)removeEventListener:(NSArray*)args; // Deprecated
+-(void)addEventListener:(NSArray*)args;
+-(void)removeEventListener:(NSArray*)args;
 
 
 
 -(void)emit:(id)args;
--(void)fireEvent:(id)args; // Deprecated
+-(void)fireEvent:(id)args;
 -(void)fireEvent:(NSString*)type withObject:(id)obj;
 
 //For UI events:

@@ -108,12 +108,12 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     return @"Ti.App";
 }
 
--(void)addEventListener:(NSArray*)args
+-(void)on:(NSArray*)args
 {
-	[self on:args];
+	[self addEventListener:args];
 }
 
--(void)on:(NSArray*)args
+-(void)addEventListener:(NSArray*)args
 {
 	NSString *type = [args objectAtIndex:0];
 	id listener = [args objectAtIndex:1];
