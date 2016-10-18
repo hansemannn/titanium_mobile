@@ -826,6 +826,11 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	}
 }
 
+-(void)once:(id)args
+{
+	// TODO: Write logic
+}
+
 -(void)on:(NSArray*)args
 {
 	[self addEventListener:args];

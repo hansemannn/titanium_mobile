@@ -108,6 +108,11 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     return @"Ti.App";
 }
 
+-(void)once:(id)args
+{
+	// TODO: Write logic
+}
+
 -(void)on:(NSArray*)args
 {
 	[self addEventListener:args];

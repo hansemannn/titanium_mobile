@@ -22,6 +22,7 @@
 -(void)on:(NSArray*)args;
 -(void)off:(NSArray*)args;
 -(void)emit:(NSArray*)args;
+-(void)once:(NSArray*)args;
 -(void)addEventListener:(NSArray*)args;
 -(void)removeEventListener:(NSArray*)args;
 -(void)fireEvent:(NSArray*)args;
