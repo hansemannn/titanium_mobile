@@ -109,8 +109,8 @@
         //Keyboard initialization
         leaveCurve = UIViewAnimationCurveEaseIn;
         enterCurve = UIViewAnimationCurveEaseIn;
-        leaveDuration = 0.3;
-        enterDuration = 0.3;
+        leaveDuration = 0.25;
+        enterDuration = 0.25;
         curTransformAngle = 0;
         
         defaultOrientations = TiOrientationNone;
@@ -137,6 +137,10 @@
         [nc addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
         [nc addObserver:self selector:@selector(keyboardDidChangeFrame:) name:UIKeyboardDidChangeFrameNotification object:nil];
         [nc addObserver:self selector:@selector(adjustFrameForUpSideDownOrientation:) name:UIApplicationDidChangeStatusBarFrameNotification object:nil];
+        
+        [nc addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+        [nc addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+        
         [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
     }
     return self;
@@ -452,10 +456,10 @@
 	startFrame = endFrame;
     if (CGRectIntersectsRect(keyboardEndFrame, screenRect)) {
         // Keyboard is visible
-        [self performSelector:@selector(adjustKeyboardHeight:) withObject:[NSNumber numberWithBool:YES] afterDelay:enterDuration];
+        [self performSelector:@selector(adjustKeyboardHeight:) withObject:@YES afterDelay:enterDuration];
     } else {
         // Keyboard is hidden
-        [self performSelector:@selector(adjustKeyboardHeight:) withObject:[NSNumber numberWithBool:NO]];
+        [self adjustKeyboardHeight:@NO];
     }
 }
 
@@ -479,6 +483,19 @@
         [self performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
     }
 }
+
+-(void)keyboardWillShow:(NSNotification*)notification
+{
+    enterCurve = [[[notification userInfo] objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue];
+    enterDuration = [[[notification userInfo] objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+}
+
+-(void)keyboardWillHide:(NSNotification*)notification
+{
+    leaveCurve = [[[notification userInfo] objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue];
+    leaveDuration = [[[notification userInfo] objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+}
+
 
 -(UIView *)viewForKeyboardAccessory;
 {
@@ -553,7 +570,7 @@
 	TiUIView * scrolledView;	//We check at the update anyways.
     
 	UIView * focusedToolbar = [self keyboardAccessoryViewForProxy:keyboardFocusedProxy withView:&scrolledView];
-    
+
     	CGRect focusedToolbarBounds;
     	//special case for undocked split keyboard
     	if (CGRectEqualToRect(CGRectZero, endingFrame)) {
@@ -629,23 +646,26 @@
 			[[self viewForKeyboardAccessory] addSubview:enteringAccessoryView];
 		}
 		targetedFrame = endingFrame;
-		[UIView beginAnimations:@"enter" context:enteringAccessoryView];
-		[UIView setAnimationDuration:enterDuration];
-		[UIView setAnimationCurve:enterCurve];
-		[UIView setAnimationDelegate:self];
-		[self placeView:enteringAccessoryView nearTopOfRect:endingFrame aboveTop:YES];
-		[UIView commitAnimations];
-		accessoryView = enteringAccessoryView;
-		enteringAccessoryView = nil;
+		
+        [UIView animateWithDuration:enterDuration
+                              delay:0
+                            options:(UIViewAnimationCurve)enterCurve << 16
+                         animations:^{
+                             [self placeView:enteringAccessoryView nearTopOfRect:endingFrame aboveTop:YES];
+                             accessoryView = enteringAccessoryView;
+                             enteringAccessoryView = nil;
+                         }
+                         completion:^(BOOL finished){}];
 	}
 	if (leavingAccessoryView != nil)
 	{
-		[UIView beginAnimations:@"exit" context:leavingAccessoryView];
-		[UIView setAnimationDuration:leaveDuration];
-		[UIView setAnimationCurve:leaveCurve];
-		[UIView setAnimationDelegate:self];
-		[self placeView:leavingAccessoryView nearTopOfRect:endingFrame aboveTop:NO];
-		[UIView commitAnimations];
+        [UIView animateWithDuration:leaveDuration
+                              delay:0
+                            options:(UIViewAnimationCurve)leaveCurve << 16
+                         animations:^{
+                             [self placeView:leavingAccessoryView nearTopOfRect:endingFrame aboveTop:NO];
+                         }
+                         completion:^(BOOL finished){}];
 	}
     
 }

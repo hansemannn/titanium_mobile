@@ -172,7 +172,7 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 {
 	if(keyboardUIToolbar == nil)
 	{
-		keyboardUIToolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, 320,[self keyboardAccessoryHeight])];
+		keyboardUIToolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width, [self keyboardAccessoryHeight])];
 		UIColor * newColor = [[TiUtils colorValue:[self valueForKey:@"keyboardToolbarColor"]] _color];
 		if(newColor != nil){
 			[keyboardUIToolbar setBarTintColor:newColor];
