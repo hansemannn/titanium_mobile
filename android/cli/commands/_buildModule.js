@@ -290,6 +290,7 @@ AndroidModuleBuilder.prototype.initialize = function initialize(next) {
 	this.projLibDir = path.join(this.projectDir, 'lib');
 
 	this.buildClassesDir = path.join(this.buildDir, 'classes');
+	this.buildClassesGenDir = path.join(this.buildClassesDir, 'org', 'appcelerator', 'titanium', 'gen');
 	this.buildGenDir = path.join(this.buildDir, 'generated');
 
 	this.buildGenJsDir = path.join(this.buildGenDir, 'js');
@@ -729,7 +730,7 @@ AndroidModuleBuilder.prototype.generateV8Bindings = function (next) {
 					return s.toLowerCase();
 				});
 
-				if (!(moduleNamespace in namespaces)) {
+				if (namespaces.indexOf(moduleNamespace) == -1) {
 					namespaces.unshift(moduleNamespace.split('.').join('::'));
 				}
 
@@ -1211,7 +1212,13 @@ AndroidModuleBuilder.prototype.compileAllFinal = function (next) {
 			'@' + javaSourcesFile
 		],
 		{},
-		next
+		function () {
+			// remove gen, prevent duplicate entry error
+			if (fs.existsSync(this.buildClassesGenDir)) {
+				wrench.rmdirSyncRecursive(this.buildClassesGenDir);
+			}
+			next();
+		}.bind(this)
 	);
 
 };
