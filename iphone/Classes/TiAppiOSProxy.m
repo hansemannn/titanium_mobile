@@ -19,6 +19,7 @@
 #import "TiAppiOSSearchableItemAttributeSetProxy.h"
 #import "TiAppiOSSearchableItemProxy.h"
 #import "TiAppiOSSearchableIndexProxy.h"
+#import "TiAppiOSOnDemandResourcesManagerProxy.h"
 
 #if IS_XCODE_8
 #ifdef USE_TI_APPIOSSEARCHQUERY
@@ -265,6 +266,16 @@
 
     return proxy;
 }
+#endif
+
+#ifdef USE_TI_APPIOSONDEMANDRESOURCESMANAGER
+-(id)createOnDemandResourcesManager:(id)args
+{
+    return [[[TiAppiOSOnDemandResourcesManagerProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
+}
+
+MAKE_SYSTEM_PROP_DBL(ON_DEMAND_LOADING_PRIORITY_URGENT, NSBundleResourceRequestLoadingPriorityUrgent);
+
 #endif
 
 #if IS_XCODE_8
