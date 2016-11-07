@@ -662,7 +662,6 @@ events:
            The expected y axis offset when the scrolling action decelerates to a stop. 
         type: Number
 
-
 properties:
   - name: allowsSelection
     summary: Determines whether this item can be selected.
@@ -1104,7 +1103,6 @@ properties:
     availability: creation
     
 methods:
-
   - name: scrollToItem
     summary: Scrolls to a specific item.
     description: |
@@ -1807,4 +1805,3 @@ properties:
   - name: itemId
     summary: The item ID bound to the list item that generated the event.
     type: String
-0
