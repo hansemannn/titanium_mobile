@@ -775,12 +775,6 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
         }
     }
     
-    // Disable the text selection
-    BOOL disableTextSelection = [TiUtils boolValue:[[self proxy] valueForKey:@"disableTextSelection"] def:NO];
-    if (disableTextSelection) {
-        [webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitUserSelect='none';"];
-    }
-
     // Disable the context menu
     BOOL disableContextMenu = [TiUtils boolValue:[[self proxy] valueForKey:@"disableContextMenu"] def:NO];
     if (disableContextMenu) {
