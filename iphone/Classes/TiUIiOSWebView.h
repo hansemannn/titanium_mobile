@@ -20,6 +20,7 @@
 }
 
 - (WKWebView*)webView;
+- (NSString*)stringByEvaluatingJavaScriptFromString:(NSString *)script withCompletionHandler:(void (^)(NSString *result, NSError *error))completionHandler;
 
 @end
 
