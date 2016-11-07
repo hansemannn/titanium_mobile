@@ -343,7 +343,10 @@
 		DABF3EDC134D2E4400836137 /* TiStreamProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DABF3EDB134D2E4300836137 /* TiStreamProxy.m */; };
 		DADE76D413D65C590079FC75 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADE76D313D65C590079FC75 /* libicucore.dylib */; };
 		DAE541E313577BEC00A65123 /* TiDataStream.m in Sources */ = {isa = PBXBuildFile; fileRef = DAE541E213577BEC00A65123 /* TiDataStream.m */; };
+		DB8BA8A01DCFEC6E00534465 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB8BA89F1DCFEC6E00534465 /* WebKit.framework */; };
 		DB90749F1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB90749E1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m */; };
+		DB9872711DCFE72000F9EAF8 /* TiUIiOSWebViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9872701DCFE72000F9EAF8 /* TiUIiOSWebViewProxy.m */; };
+		DB9872741DCFE72B00F9EAF8 /* TiUIiOSWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9872731DCFE72B00F9EAF8 /* TiUIiOSWebView.m */; };
 		EF0ADCFA143F9ABF00977386 /* NSData+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0ADCF9143F9ABF00977386 /* NSData+Additions.m */; };
 		EF0ADD1A143FA0CD00977386 /* GeolocationModule.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0ADD19143FA0CD00977386 /* GeolocationModule.m */; };
 /* End PBXBuildFile section */
@@ -1034,8 +1037,13 @@
 		DADE76D313D65C590079FC75 /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
 		DAE541E113577BEC00A65123 /* TiDataStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiDataStream.h; sourceTree = "<group>"; };
 		DAE541E213577BEC00A65123 /* TiDataStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiDataStream.m; sourceTree = "<group>"; };
+		DB8BA89F1DCFEC6E00534465 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		DB90749D1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSFeedbackGeneratorProxy.h; sourceTree = "<group>"; };
 		DB90749E1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSFeedbackGeneratorProxy.m; sourceTree = "<group>"; };
+		DB98726F1DCFE72000F9EAF8 /* TiUIiOSWebViewProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSWebViewProxy.h; sourceTree = "<group>"; };
+		DB9872701DCFE72000F9EAF8 /* TiUIiOSWebViewProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSWebViewProxy.m; sourceTree = "<group>"; };
+		DB9872721DCFE72B00F9EAF8 /* TiUIiOSWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSWebView.h; sourceTree = "<group>"; };
+		DB9872731DCFE72B00F9EAF8 /* TiUIiOSWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSWebView.m; sourceTree = "<group>"; };
 		EF0ADCF9143F9ABF00977386 /* NSData+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSData+Additions.m"; path = "../Classes/NSData+Additions.m"; sourceTree = "<group>"; };
 		EF0ADD19143FA0CD00977386 /* GeolocationModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeolocationModule.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1045,6 +1053,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB8BA8A01DCFEC6E00534465 /* WebKit.framework in Frameworks */,
 				84ED2CD01AEEC0C00049FB68 /* iAd.framework in Frameworks */,
 				8465E6BC19F8644D008479E6 /* CoreMedia.framework in Frameworks */,
 				84D4CA1619EF0B5A009131F8 /* CoreMotion.framework in Frameworks */,
@@ -1964,6 +1973,7 @@
 		24D06FDE11D020E600F615D8 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				DB98726E1DCFE6FE00F9EAF8 /* WebView */,
 				0BF933871CA0929A0091C7EC /* Stepper */,
 				3A811CCD1C2C21CA0023468C /* BlurView */,
 				3A0B56721C0CD7FE00709DA4 /* LivePhotoView */,
@@ -2173,6 +2183,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DB8BA89F1DCFEC6E00534465 /* WebKit.framework */,
 				84ED2CCD1AEEC0A70049FB68 /* iAd.framework */,
 				8465E6BB19F8644D008479E6 /* CoreMedia.framework */,
 				84D4CA1319EF0B3D009131F8 /* CoreMotion.framework */,
@@ -2545,6 +2556,17 @@
 			name = Stream;
 			sourceTree = "<group>";
 		};
+		DB98726E1DCFE6FE00F9EAF8 /* WebView */ = {
+			isa = PBXGroup;
+			children = (
+				DB9872721DCFE72B00F9EAF8 /* TiUIiOSWebView.h */,
+				DB9872731DCFE72B00F9EAF8 /* TiUIiOSWebView.m */,
+				DB98726F1DCFE72000F9EAF8 /* TiUIiOSWebViewProxy.h */,
+				DB9872701DCFE72000F9EAF8 /* TiUIiOSWebViewProxy.m */,
+			);
+			name = WebView;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -2828,6 +2850,7 @@
 				24A1E8A8112DFACA003DA834 /* TiUIPickerRowProxy.m in Sources */,
 				24A1E992112E1363003DA834 /* TiUIPickerColumnProxy.m in Sources */,
 				24A1EAF6112F4C02003DA834 /* UIImage+Alpha.m in Sources */,
+				DB9872711DCFE72000F9EAF8 /* TiUIiOSWebViewProxy.m in Sources */,
 				24A1EAF7112F4C02003DA834 /* UIImage+Resize.m in Sources */,
 				BB26FC8319AB13B9007A35AF /* TiAppiOSNotificationCategoryProxy.m in Sources */,
 				15CB440E1C4EBE4000D81480 /* TiUIiOSStatusBarProxy.m in Sources */,
@@ -2860,6 +2883,7 @@
 				24F6204F1199F1F400EEAD3C /* TopTiModule.m in Sources */,
 				24F620541199F26500EEAD3C /* TiApp.m in Sources */,
 				B606EF4A190B14ED00663EFC /* Reachability.m in Sources */,
+				DB9872741DCFE72B00F9EAF8 /* TiUIiOSWebView.m in Sources */,
 				24F6205A1199F27700EEAD3C /* TiErrorController.m in Sources */,
 				DA864E3211A2314A00B9CD68 /* TiMediaMusicPlayer.m in Sources */,
 				823CC8AC1B7F0E4D00D220C7 /* WatchSessionModule.m in Sources */,

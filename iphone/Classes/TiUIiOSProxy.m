@@ -104,6 +104,10 @@
 #endif
 #endif
 
+#ifdef USE_TI_UIIOSWEBVIEW
+#import "TiUIiOSWebViewProxy.h"
+#endif
+
 @implementation TiUIiOSProxy
 
 #define FORGET_AND_RELEASE(x) \
@@ -625,6 +629,13 @@ MAKE_SYSTEM_PROP(KEYBOARD_DISMISS_MODE_INTERACTIVE, UIScrollViewKeyboardDismissM
 -(id)createMenuPopup:(id)args
 {
     return [[[TiUIiOSMenuPopupProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
+}
+#endif
+
+#ifdef USE_TI_UIIOSWEBVIEW
+-(id)createWebView:(id)args
+{
+    return [[[TiUIiOSWebViewProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
 }
 #endif
 
