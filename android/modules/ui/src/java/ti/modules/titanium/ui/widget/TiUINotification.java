@@ -65,6 +65,10 @@ public class TiUINotification extends TiUIView
 		if (proxy.hasProperty("gravity")) {
 			gravity = TiConvert.toInt(proxy.getProperty("gravity"));
 		}
+        
+		if (proxy.hasProperty("message")) {
+			toast.setText((String) proxy.getProperty("message"));
+		}
 		
 		toast.setGravity(gravity, offsetX, offsetY);
 				
