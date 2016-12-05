@@ -2258,8 +2258,9 @@ iOSBuilder.prototype.initialize = function initialize() {
 		this.defaultLaunchScreenStoryboard = false;
 	}
 
-	var defaultColor = this.defaultLaunchScreenStoryboard ? 'ffffff' : null,
-		color = this.tiapp.ios['default-background-color'] || defaultColor;
+	var defaultColor = 'ffffff';
+	var color = this.tiapp.ios['default-background-color'] || defaultColor;
+
 	if (color) {
 		var m = color.match(/^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/),
 			c = m && m[1];
@@ -2274,9 +2275,7 @@ iOSBuilder.prototype.initialize = function initialize() {
 			};
 		} else {
 			this.logger.warn(__('Invalid default background color "%s" in the <ios> section of the tiapp.xml', color));
-			if (defaultColor) {
-				this.logger.warn(__('Using default background color "%s"', '#' + defaultColor));
-			}
+			this.logger.warn(__('Using default background color "%s"', '#' + defaultColor));
 		}
 	}
 };
@@ -4272,7 +4271,7 @@ iOSBuilder.prototype.copyTitaniumiOSFiles = function copyTitaniumiOSFiles() {
 		path.join(this.buildDir, this.tiapp.name + '.xcodeproj', 'xcshareddata', 'xcschemes', name + '.xcscheme')
 	);
 
-	if (this.enableLaunchScreenStoryboard && this.defaultLaunchScreenStoryboard) {
+	if (this.enableLaunchScreenStoryboard) {
 		this.logger.info(__('Installing default %s', 'LaunchScreen.storyboard'.cyan));
 		copyAndReplaceFile.call(
 			this,
@@ -4990,7 +4989,7 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 				},
 
 				function processLaunchLogos(next) {
-					if (!this.enableLaunchScreenStoryboard || !this.defaultLaunchScreenStoryboard) {
+					if (!this.enableLaunchScreenStoryboard) {
 						return next();
 					}
 
