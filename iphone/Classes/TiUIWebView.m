@@ -671,6 +671,14 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
     return ret;
 }
 
+- (void)setKeyboardDisplayRequiresUserAction_:(id)value
+{
+    ENSURE_TYPE(value, NSNumber);
+    [[self proxy] replaceValue:value forKey:@"keyboardDisplayRequiresUserAction" notification:NO];
+    
+    [[self webview] setKeyboardDisplayRequiresUserAction:[TiUtils boolValue:value def:YES]];
+}
+
 #pragma mark WebView Delegate
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
@@ -778,7 +786,9 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
     // Disable the context menu when selecting a range of text
     BOOL disableContextMenu = [TiUtils boolValue:[[self proxy] valueForKey:@"disableContextMenu"] def:NO];
     if (disableContextMenu) {
+        [webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitUserSelect='none';"];
         [webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitTouchCallout='none';"];
+        [webView stringByEvaluatingJavaScriptFromString:@"window.getSelection().removeAllRanges();"];
     }
     
     [webView setNeedsDisplay];

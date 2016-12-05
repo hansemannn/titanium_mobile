@@ -427,16 +427,16 @@ properties:
     type: Number
     platforms: [iphone, ipad]
     deprecated:
-        since: "6.0.0"
-        notes: Use <Titanium.UI.TextField.padding> instead.
+        since: 6.1.0
+        notes: Use <Titanium.UI.TextField.padding> for parity instead.
     
   - name: paddingRight
     summary: Right padding of this text field.
     type: Number
     platforms: [iphone, ipad]
     deprecated:
-        since: "6.0.0"
-        notes: Use <Titanium.UI.TextField.padding> instead.
+        since: 6.1.0
+        notes: Use <Titanium.UI.TextField.padding> for parity instead.
             
   - name: passwordMask
     summary: Obscure the input text from the user.
