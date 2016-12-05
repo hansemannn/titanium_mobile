@@ -16,6 +16,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.os.Environment;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -135,12 +136,6 @@ public class TiFileProxy extends KrollProxy
 	public boolean getWritable()
 	{
 		return tbf.isWriteable();
-	}
-
-	@Kroll.method
-	public boolean append(Object data)
-	{
-		return write(new Object[]{data, true});
 	}
 
 	@Kroll.method
@@ -296,15 +291,15 @@ public class TiFileProxy extends KrollProxy
 			if (args != null && args.length > 0) {
 				boolean append = false;
 				if (args.length > 1 && args[1] instanceof Boolean) {
-					append = (Boolean) args[1];
+					append = ((Boolean)args[1]).booleanValue();
 				}
 
 				if (args[0] instanceof TiBlob) {
-					((TiFile)tbf).write((TiBlob)args[0], append);
+					tbf.write((TiBlob)args[0], append);
 				} else if (args[0] instanceof String) {
-					((TiFile)tbf).write((String)args[0], append);
+					tbf.write((String)args[0], append);
 				} else if (args[0] instanceof TiFileProxy) {
-					((TiFile)tbf).write(((TiFileProxy)args[0]).read(), append);
+					tbf.write(((TiFileProxy)args[0]).read(), append);
 				} else {
 					Log.i(TAG, "Unable to write to an unrecognized file type");
 					return false;

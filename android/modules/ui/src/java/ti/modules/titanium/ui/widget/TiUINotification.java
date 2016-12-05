@@ -9,7 +9,6 @@ package ti.modules.titanium.ui.widget;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
@@ -37,10 +36,6 @@ public class TiUINotification extends TiUIView
 		int offsetX = toast.getXOffset();
 		int offsetY = toast.getYOffset();		
 		int gravity = toast.getGravity();		
-		
-		if (proxy.hasProperty(TiC.PROPERTY_MESSAGE)) {
-			toast.setText(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_MESSAGE)));
-		}
 		
 		if (proxy.hasProperty("duration")) {
 			// Technically this should check if the duration is one of the 2 possible options
@@ -91,6 +86,8 @@ public class TiUINotification extends TiUIView
 	}
 
 	public void show(KrollDict options) {
+
+		toast.setText((String) proxy.getProperty("message"));
 		toast.show();
 	}
 
