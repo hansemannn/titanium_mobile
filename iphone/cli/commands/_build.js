@@ -986,13 +986,13 @@ iOSBuilder.prototype.configOptionPPuuid = function configOptionPPuuid(order) {
 						provisioningProfiles[__('Available Development UUIDs:')] = pp;
 					} else {
 						logger.error(__('Unable to find any non-expired development provisioning profiles that match the app id "%s"', appId) + '\n');
-						logger.log(__('You will need to log in to %s with your Apple Developer account, then create, download, and install a profile.',
+						logger.log(__('You will need to login into %s with your Apple Download account, then create, download, and install a profile.',
 							'http://appcelerator.com/ios-dev-certs'.cyan) + '\n');
 						process.exit(1);
 					}
 				} else {
 					logger.error(__('Unable to find any development provisioning profiles') + '\n');
-					logger.log(__('You will need to log in to %s with your Apple Developer account, then create, download, and install a profile.',
+					logger.log(__('You will need to login into %s with your Apple Download account, then create, download, and install a profile.',
 						'http://appcelerator.com/ios-dev-certs'.cyan) + '\n');
 					process.exit(1);
 				}
@@ -1012,13 +1012,13 @@ iOSBuilder.prototype.configOptionPPuuid = function configOptionPPuuid(order) {
 
 					if (!valid) {
 						logger.error(__('Unable to find any non-expired distribution or adhoc provisioning profiles that match the app id "%s".', appId) + '\n');
-						logger.log(__('You will need to log in to %s with your Apple Developer account, then create, download, and install a profile.',
+						logger.log(__('You will need to login into %s with your Apple Download account, then create, download, and install a profile.',
 							'http://appcelerator.com/ios-dist-certs'.cyan) + '\n');
 						process.exit(1);
 					}
 				} else {
 					logger.error(__('Unable to find any distribution or adhoc provisioning profiles'));
-					logger.log(__('You will need to log in to %s with your Apple Developer account, then create, download, and install a profile.',
+					logger.log(__('You will need to login into %s with your Apple Download account, then create, download, and install a profile.',
 						'http://appcelerator.com/ios-dist-certs'.cyan) + '\n');
 					process.exit(1);
 				}
@@ -1997,51 +1997,24 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 						if (module.platform.indexOf('commonjs') !== -1) {
 							module.native = false;
 
-							// look for legacy module.id.js first
-							var libFile = path.join(module.modulePath, module.id + '.js');
-							module.libFile = fs.existsSync(libFile) ? libFile : null;
-							// If no legacy file, look for package.json...
-							if (!module.libFile) {
-								var pkgJsonFile = path.join(module.modulePath, 'package.json');
-								if (fs.existsSync(pkgJsonFile)) {
-									try {
-										var pkgJson = require(pkgJsonFile);
-										// look for 'main' property
-										if (pkgJson && pkgJson.main) {
-											// look for main file as-is
-											if (fs.existsSync(libFile = path.join(module.modulePath, pkgJson.main))) {
-												module.libFile = libFile;
-											}
-											// look with .js extension
-											if (!module.libFile && fs.existsSync(libFile = path.join(module.modulePath, pkgJson.main + '.js'))) {
-												module.libFile = libFile;
-											}
-											// look with .json extension
-											if (!module.libFile && fs.existsSync(libFile = path.join(module.modulePath, pkgJson.main + '.json'))) {
-												module.libFile = libFile;
-											}
+							// Look for legacy module.id.js first
+							module.libFile = path.join(module.modulePath, module.id + '.js');
+							if (!fs.existsSync(module.libFile)) {
+								// then package.json TODO Verify the main property points at reale file under the module!
+								module.libFile = path.join(module.modulePath, 'package.json');
+								if (!fs.existsSync(module.libFile)) {
+									// then index.js
+									module.libFile = path.join(module.modulePath, 'index.js');
+									if (!fs.existsSync(module.libFile)) {
+										// then index.json
+										module.libFile = path.join(module.modulePath, 'index.json');
+										if (!fs.existsSync(module.libFile)) {
+											this.logger.error(__('Module %s version %s is missing module files: %s, package.json, index.js, or index.json', module.id.cyan, (module.manifest.version || 'latest').cyan, path.join(module.modulePath, module.id + '.js').cyan) + '\n');
+											process.exit(1);
 										}
-									} catch (e) {
-										// squeltch
 									}
 								}
-
-								// look for index.js in root directory of module
-								if (!module.libFile && fs.existsSync(libFile = path.join(module.modulePath, 'index.js'))) {
-									module.libFile = libFile;
-								}
-
-								// look for index.json in root directory of module
-								if (!module.libFile && fs.existsSync(libFile = path.join(module.modulePath, 'index.json'))) {
-									module.libFile = libFile;
-								}
-
-								if (!module.libFile) {
-									this.logger.error(__('Module "%s" v%s is missing main file: %s, package.json with "main" entry, index.js, or index.json', module.id, module.manifest.version || 'latest', module.id + '.js') + '\n');
-									process.exit(1);
-								}
 							}
-
 							this.commonJsModules.push(module);
 						} else {
 							module.native = true;
@@ -3550,7 +3523,7 @@ iOSBuilder.prototype.createXcodeProject = function createXcodeProject(next) {
 	hook(xcodeProject, next);
 };
 
-iOSBuilder.prototype._embedCapabilitiesAndWriteEntitlementsPlist = function _embedCapabilitiesAndWriteEntitlementsPlist(plist, dest, isExtension, next) {
+iOSBuilder.prototype._embedCapabilitiesAndWriteEntitlementsPlist = function _embedCapabilitiesAndWriteEntitlementsPlist(plist, dest) {
 	var caps = this.tiapp.ios.capabilities,
 		parent = path.dirname(dest);
 
@@ -3568,39 +3541,22 @@ iOSBuilder.prototype._embedCapabilitiesAndWriteEntitlementsPlist = function _emb
 
 	this.unmarkBuildDirFile(dest);
 
-	var rel = path.relative(this.buildDir, dest);
-	if (['ios', 'iphone'].some(function (dir) {
-		if (fs.existsSync(path.join(this.projectDir, 'platform', dir, rel))) {
-			return true;
+	// write the entitlements.plist
+	var contents = plist.toString('xml');
+	if (!fs.existsSync(dest) || contents !== fs.readFileSync(dest).toString()) {
+		if (!this.forceRebuild) {
+			this.logger.info(__('Forcing rebuild: %s has changed since last build', dest.replace(this.projectDir + '/', '')));
+			this.forceRebuild = true;
 		}
-	}, this)) {
-		return next();
+		this.logger.debug(__('Writing %s', dest.cyan));
+		fs.existsSync(parent) || wrench.mkdirSyncRecursive(parent);
+		fs.writeFileSync(dest, contents);
+	} else {
+		this.logger.trace(__('No change, skipping %s', dest.cyan));
 	}
-
-	var name = 'build.ios.write' + (isExtension ? 'Extension' : '') + 'Entitlements';
-	var hook = this.cli.createHook(name, this, function (plist, dest, done) {
-		// write the entitlements.plist
-		var contents = plist.toString('xml');
-
-		if (!fs.existsSync(dest) || contents !== fs.readFileSync(dest).toString()) {
-			if (!this.forceRebuild) {
-				this.logger.info(__('Forcing rebuild: %s has changed since last build', dest.replace(this.projectDir + '/', '')));
-				this.forceRebuild = true;
-			}
-			this.logger.debug(__('Writing %s', dest.cyan));
-			fs.existsSync(parent) || wrench.mkdirSyncRecursive(parent);
-			fs.writeFileSync(dest, contents);
-		} else {
-			this.logger.trace(__('No change, skipping %s', dest.cyan));
-		}
-
-		done();
-	});
-
-	hook(plist, dest, next);
 };
 
-iOSBuilder.prototype.writeEntitlementsPlist = function writeEntitlementsPlist(next) {
+iOSBuilder.prototype.writeEntitlementsPlist = function writeEntitlementsPlist() {
 	this.logger.info(__('Creating Entitlements.plist'));
 
 	// allow the project to have its own custom entitlements
@@ -3650,7 +3606,7 @@ iOSBuilder.prototype.writeEntitlementsPlist = function writeEntitlementsPlist(ne
 		}
 	}
 
-	this._embedCapabilitiesAndWriteEntitlementsPlist(plist, path.join(this.buildDir, this.tiapp.name + '.entitlements'), false, next);
+	this._embedCapabilitiesAndWriteEntitlementsPlist(plist, path.join(this.buildDir, this.tiapp.name + '.entitlements'));
 };
 
 iOSBuilder.prototype.writeInfoPlist = function writeInfoPlist() {
@@ -4354,12 +4310,12 @@ iOSBuilder.prototype.copyTitaniumiOSFiles = function copyTitaniumiOSFiles() {
 	}
 };
 
-iOSBuilder.prototype.copyExtensionFiles = function copyExtensionFiles(next) {
-	if (!this.extensions.length) return next();
+iOSBuilder.prototype.copyExtensionFiles = function copyExtensionFiles() {
+	if (!this.extensions.length) return;
 
 	this.logger.info(__('Copying iOS extensions'));
 
-	async.eachSeries(this.extensions, function (extension, next) {
+	this.extensions.forEach(function (extension) {
 		var extName = path.basename(extension.projectPath).replace(/\.xcodeproj$/, ''),
 			src = path.dirname(extension.projectPath),
 			dest = path.join(this.buildDir, 'extensions', path.basename(src));
@@ -4444,15 +4400,15 @@ iOSBuilder.prototype.copyExtensionFiles = function copyExtensionFiles(next) {
 		extension.projectPath = path.join(dest, path.basename(extension.projectPath));
 
 		// check if we need to write an entitlements file
-		async.eachSeries(Object.keys(extension.targetInfo), function (target, next) {
+		Object.keys(extension.targetInfo).forEach(function (target) {
 			if (!extension.targetInfo[target].entitlementsFile) {
-				return next();
+				return;
 			}
 
 			var plist = new appc.plist(fs.existsSync(extension.targetInfo[target].entitlementsFile) ? extension.targetInfo[target].entitlementsFile : null);
-			this._embedCapabilitiesAndWriteEntitlementsPlist(plist, extension.targetInfo[target].entitlementsFile, true, next);
-		}.bind(this), next);
-	}.bind(this), next);
+			this._embedCapabilitiesAndWriteEntitlementsPlist(plist, extension.targetInfo[target].entitlementsFile);
+		}, this);
+	}, this);
 };
 
 iOSBuilder.prototype.cleanXcodeDerivedData = function cleanXcodeDerivedData(next) {
