@@ -343,6 +343,8 @@
 		DABF3EDC134D2E4400836137 /* TiStreamProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DABF3EDB134D2E4300836137 /* TiStreamProxy.m */; };
 		DADE76D413D65C590079FC75 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADE76D313D65C590079FC75 /* libicucore.dylib */; };
 		DAE541E313577BEC00A65123 /* TiDataStream.m in Sources */ = {isa = PBXBuildFile; fileRef = DAE541E213577BEC00A65123 /* TiDataStream.m */; };
+		DB5B1D4D1DF8B2C700B2E72A /* AsyncModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DB5B1D4C1DF8B2C700B2E72A /* AsyncModule.m */; };
+		DB5B1D501DF8B32800B2E72A /* TiAsyncQueueProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB5B1D4F1DF8B32800B2E72A /* TiAsyncQueueProxy.m */; };
 		DB90749F1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB90749E1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m */; };
 		EF0ADCFA143F9ABF00977386 /* NSData+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0ADCF9143F9ABF00977386 /* NSData+Additions.m */; };
 		EF0ADD1A143FA0CD00977386 /* GeolocationModule.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0ADD19143FA0CD00977386 /* GeolocationModule.m */; };
@@ -1034,6 +1036,11 @@
 		DADE76D313D65C590079FC75 /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
 		DAE541E113577BEC00A65123 /* TiDataStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiDataStream.h; sourceTree = "<group>"; };
 		DAE541E213577BEC00A65123 /* TiDataStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiDataStream.m; sourceTree = "<group>"; };
+		DB5B1D4B1DF8B2C700B2E72A /* AsyncModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AsyncModule.h; sourceTree = "<group>"; };
+		DB5B1D4C1DF8B2C700B2E72A /* AsyncModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AsyncModule.m; sourceTree = "<group>"; };
+		DB5B1D4E1DF8B32800B2E72A /* TiAsyncQueueProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiAsyncQueueProxy.h; sourceTree = "<group>"; };
+		DB5B1D4F1DF8B32800B2E72A /* TiAsyncQueueProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiAsyncQueueProxy.m; sourceTree = "<group>"; };
+		DB5B1D511DF8BA5600B2E72A /* AsyncConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsyncConstants.h; sourceTree = "<group>"; };
 		DB90749D1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSFeedbackGeneratorProxy.h; sourceTree = "<group>"; };
 		DB90749E1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSFeedbackGeneratorProxy.m; sourceTree = "<group>"; };
 		EF0ADCF9143F9ABF00977386 /* NSData+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSData+Additions.m"; path = "../Classes/NSData+Additions.m"; sourceTree = "<group>"; };
@@ -1322,6 +1329,7 @@
 				24CA8C11111163C30084E2DE /* Platform */,
 				24CA8C16111164150084E2DE /* Yahoo */,
 				24CA8C14111164040084E2DE /* UI */,
+				DB5B1D4A1DF8B2B300B2E72A /* Async */,
 				24F29E781220D0DB0099351D /* Locale */,
 			);
 			name = Modules;
@@ -2545,6 +2553,18 @@
 			name = Stream;
 			sourceTree = "<group>";
 		};
+		DB5B1D4A1DF8B2B300B2E72A /* Async */ = {
+			isa = PBXGroup;
+			children = (
+				DB5B1D4B1DF8B2C700B2E72A /* AsyncModule.h */,
+				DB5B1D4C1DF8B2C700B2E72A /* AsyncModule.m */,
+				DB5B1D511DF8BA5600B2E72A /* AsyncConstants.h */,
+				DB5B1D4E1DF8B32800B2E72A /* TiAsyncQueueProxy.h */,
+				DB5B1D4F1DF8B32800B2E72A /* TiAsyncQueueProxy.m */,
+			);
+			name = Async;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -2721,6 +2741,7 @@
 				84DEE9171815CF52000D7B78 /* TiUIRefreshControlProxy.m in Sources */,
 				159C599B1C383645009A8860 /* TiUIiOSTableViewCellSelectionStyleProxy.m in Sources */,
 				24CA8B93111161FE0084E2DE /* TiUIiPhoneRowAnimationStyleProxy.m in Sources */,
+				DB5B1D501DF8B32800B2E72A /* TiAsyncQueueProxy.m in Sources */,
 				24CA8B94111161FE0084E2DE /* TiUIiPhoneProgressBarStyleProxy.m in Sources */,
 				24CA8B95111161FE0084E2DE /* TiUIProgressBarProxy.m in Sources */,
 				24CA8B96111161FE0084E2DE /* TiUIProgressBar.m in Sources */,
@@ -2904,6 +2925,7 @@
 				DA2556441353D2FC005D459C /* TiNetworkSocketProxy.m in Sources */,
 				DAE541E313577BEC00A65123 /* TiDataStream.m in Sources */,
 				4D3033A3136239B30034640F /* TiFilesystemFileStreamProxy.m in Sources */,
+				DB5B1D4D1DF8B2C700B2E72A /* AsyncModule.m in Sources */,
 				ABD472F413BB73BF00502912 /* KrollCoverage.m in Sources */,
 				2B94603613F0A2AE000C5BEA /* TiUIiOSCoverFlowView.m in Sources */,
 				2B94603713F0A2AE000C5BEA /* TiUIiOSCoverFlowViewProxy.m in Sources */,
