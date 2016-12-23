@@ -12,7 +12,8 @@
 
 @interface TiUIiOSWebView : TiUIView <WKUIDelegate, WKNavigationDelegate> {
     WKWebView *_webView;
-    
+    NSString *pageToken;
+
     TiDimension width;
     TiDimension height;
     CGFloat autoHeight;
@@ -21,6 +22,8 @@
 
 - (WKWebView*)webView;
 - (NSString*)stringByEvaluatingJavaScriptFromString:(NSString *)script withCompletionHandler:(void (^)(NSString *result, NSError *error))completionHandler;
+- (void)evalFile:(NSString*)path;
+- (void)fireEvent:(id)listener withObject:(id)obj remove:(BOOL)yn thisObject:(id)thisObject_;
 
 @end
 

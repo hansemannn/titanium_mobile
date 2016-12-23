@@ -7,6 +7,7 @@
 
 #ifdef USE_TI_UIIOSWEBVIEW
 #import "TiUIiOSWebView.h"
+#import "TiUIiOSWebViewProxy.h"
 #import "TiFilesystemFileProxy.h"
 #import "TiApp.h"
 #import "SBJSON.h"
@@ -124,18 +125,21 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     ENSURE_TYPE(value, NSString);
     [[self proxy] replaceValue:value forKey:@"html" notification:NO];
    
+    NSString *content = [TiUtils stringValue:value];
+
     if ([[self webView] isLoading]) {
         [[self webView] stopLoading];
     }
     
     if ([[self proxy] _hasListeners:@"beforeload"]) {
-        [[self proxy] fireEvent:@"beforeload" withObject:@{@"html": [TiUtils stringValue:value]}];
+        [[self proxy] fireEvent:@"beforeload" withObject:@{@"html": content}];
     }
     
     // Inject Titanium event support
-    [[[[self webView] configuration] userContentController] addUserScript:[TiUIiOSWebView userScriptTitaniumGlobalEventSupport]];
+    // [[[[self webView] configuration] userContentController] addUserScript:[TiUIiOSWebView userScriptTitaniumGlobalEventSupport]];
+    content = [[self class] content:[TiUtils stringValue:value] withInjection:[self titaniumInjection]];
     
-    [[self webView] loadHTMLString:[TiUtils stringValue:value] baseURL:nil];
+    [[self webView] loadHTMLString:content baseURL:nil];
 }
 
 - (void)setDisableBounce_:(id)value
@@ -157,14 +161,14 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     // Use own event to notify the user that the web view started
     // to receive content but did not finish, yet
     if ([[self proxy] _hasListeners:@"loadprogress"]) {
-        [[self proxy] fireEvent:@"loading" withObject:@{@"url": webView.URL.absoluteString}];
+        [[self proxy] fireEvent:@"loadprogress" withObject:@{@"url": webView.URL.absoluteString}];
     }
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
 {
     if ([[self proxy] _hasListeners:@"load"]) {
-        [[self proxy] fireEvent:@"didload" withObject:@{@"url": webView.URL.absoluteString}];
+        [[self proxy] fireEvent:@"load" withObject:@{@"url": webView.URL.absoluteString}];
     }
 }
 
@@ -184,6 +188,56 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
 
 #pragma mark Utilities
 
+- (NSString *)titaniumInjection
+{
+    if (pageToken==nil) {
+        pageToken = [[NSString stringWithFormat:@"%lu",(unsigned long)[self hash]] retain];
+        [(TiUIiOSWebViewProxy*)self.proxy setPageToken:pageToken];
+    }
+    
+    NSMutableString *html = [[[NSMutableString alloc] init] autorelease];
+    [html appendString:@"<script id='__ti_injection'>"];
+    NSString *ti = [NSString stringWithFormat:@"%@%s",@"Ti","tanium"];
+    [html appendFormat:@"window.%@={};window.Ti=%@;Ti.pageToken=%@;Ti.appId='%@';",ti,ti,pageToken,TI_APPLICATION_ID];
+    [html appendString:kTitaniumJavascript];
+    [html appendString:@"</script>"];
+    
+    return html;
+}
+
++ (NSString *)content:(NSString *)content withInjection:(NSString *)injection
+{
+    if ([content length] == 0) {
+        return content;
+    }
+    // attempt to make well-formed HTML and inject in our Titanium bridge code
+    // However, we only do this if the content looks like HTML
+    NSRange range = [content rangeOfString:@"<html"];
+    if (range.location == NSNotFound) {
+        //TODO: Someone did a DOCTYPE, and our search wouldn't find it. This search is tailored for him
+        //to cause the bug to go away, but is this really the right thing to do? Shouldn't we have a better
+        //way to check?
+        range = [content rangeOfString:@"<!DOCTYPE html"];
+    }
+    
+    if (range.location != NSNotFound) {
+        NSMutableString *html = [[NSMutableString alloc] initWithCapacity:[content length]+2000];
+        NSRange nextRange = [content rangeOfString:@">" options:0 range:NSMakeRange(range.location, [content length]-range.location) locale:nil];
+        if (nextRange.location != NSNotFound) {
+            [html appendString:[content substringToIndex:nextRange.location+1]];
+            [html appendString:injection];
+            [html appendString:[content substringFromIndex:nextRange.location+1]];
+        } else {
+            // oh well, just jack it in
+            [html appendString:injection];
+            [html appendString:content];
+        }
+        
+        return [html autorelease];
+    }
+    return content;
+}
+
 - (WKWebViewConfiguration*)configuration
 {
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
@@ -196,11 +250,7 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     id allowsAirPlayForMediaPlayback = [[self proxy] valueForKey:@"allowsAirPlayForMediaPlayback"];
     id allowsPictureInPictureMediaPlayback = [[self proxy] valueForKey:@"allowsPictureInPictureMediaPlayback"];
     
-    if (suppressesIncrementalRendering) {
-        [config setSuppressesIncrementalRendering:[TiUtils boolValue:suppressesIncrementalRendering def:NO]];
-    }
-    
-    if (scalePageToFit) {
+    if ([TiUtils boolValue:scalePageToFit def:YES]) {
         [controller addUserScript:[TiUIiOSWebView userScriptScalePageToFit]];
     }
     
@@ -208,17 +258,13 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         [config setApplicationNameForUserAgent:[TiUtils stringValue:userAgent]];
     }
     
-    if (allowsInlineMediaPlayback) {
-        [config setAllowsInlineMediaPlayback:[TiUtils boolValue:allowsInlineMediaPlayback]];
-    }
-    
-    if (allowsAirPlayForMediaPlayback) {
-        [config setAllowsAirPlayForMediaPlayback:[TiUtils boolValue:allowsAirPlayForMediaPlayback]];
-    }
+    [config setSuppressesIncrementalRendering:[TiUtils boolValue:suppressesIncrementalRendering def:NO]];
 
-    if (allowsAirPlayForMediaPlayback) {
-        [config setAllowsPictureInPictureMediaPlayback:[TiUtils boolValue:allowsPictureInPictureMediaPlayback]];
-    }
+    [config setAllowsInlineMediaPlayback:[TiUtils boolValue:allowsInlineMediaPlayback def:NO]];
+    
+    [config setAllowsAirPlayForMediaPlayback:[TiUtils boolValue:allowsAirPlayForMediaPlayback def:NO]];
+
+    [config setAllowsPictureInPictureMediaPlayback:[TiUtils boolValue:allowsPictureInPictureMediaPlayback def:YES]];
     
     [config setUserContentController:controller];
 
@@ -262,7 +308,7 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     NSString *config = [NSString stringWithFormat:@"window.%@={};window.Ti=%@;Ti.pageToken=%@;Ti.appId='%@';",ti, ti, pageToken,TI_APPLICATION_ID];
     
     return [[WKUserScript alloc] initWithSource:[NSString stringWithFormat:@"%@ %@", config, kTitaniumJavascript]
-                                  injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+                                  injectionTime:WKUserScriptInjectionTimeAtDocumentStart
                                forMainFrameOnly:YES];
 }
 
@@ -376,7 +422,9 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         NSString *name = [event objectForKey:@"type"];
         NSString *sourceCode = [NSString stringWithFormat:@"Ti.App._dispatchEvent('%@',%@,%@);",name,listener,[SBJSON stringify:event]];
         
-        [[[[self webView] configuration] userContentController] addUserScript:[TiUIiOSWebView userScriptTitaniumJSEvaluationFromString:sourceCode]];
+        [self stringByEvaluatingJavaScriptFromString:sourceCode withCompletionHandler:^(NSString *result, NSError *error) {
+            // Evaluated
+        }];
     }
 }
 
