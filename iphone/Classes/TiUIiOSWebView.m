@@ -96,7 +96,7 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     }
     
     if ([[self proxy] _hasListeners:@"beforeload"]) {
-        [[self proxy] fireEvent:@"beforeload" withObject:@{@"url": [TiUtils stringValue:value]}];
+        [[self proxy] fireEvent:@"beforeload" withObject:@{@"url": [[NSBundle mainBundle] bundlePath], @"data": [TiUtils stringValue:value]}];
     }
     
     NSData *data = nil;
@@ -132,11 +132,10 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     }
     
     if ([[self proxy] _hasListeners:@"beforeload"]) {
-        [[self proxy] fireEvent:@"beforeload" withObject:@{@"html": content}];
+        [[self proxy] fireEvent:@"beforeload" withObject:@{@"url": [[NSBundle mainBundle] bundlePath], @"html": content}];
     }
     
     // Inject Titanium event support
-    // [[[[self webView] configuration] userContentController] addUserScript:[TiUIiOSWebView userScriptTitaniumGlobalEventSupport]];
     content = [[self class] content:[TiUtils stringValue:value] withInjection:[self titaniumInjection]];
     
     [[self webView] loadHTMLString:content baseURL:nil];
