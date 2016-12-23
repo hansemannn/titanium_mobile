@@ -143,8 +143,8 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
 
 - (void)setDisableBounce_:(id)value
 {
-    [[self proxy] replaceValue:value forKey:@"disableBounce" notification:NO];
-    [[[self webView] scrollView] setBounces:[TiUtils boolValue:value]];
+    [[self proxy] replaceValue:[value isEqual: @1] ? @0 : @1 forKey:@"disableBounce" notification:NO];
+    [[[self webView] scrollView] setBounces:![TiUtils boolValue:value]];
 }
 
 - (void)setScrollsToTop_:(id)value
