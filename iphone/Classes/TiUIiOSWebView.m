@@ -38,6 +38,8 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         [[TiApp app] attachXHRBridgeIfRequired];
                 
         _webView = [[WKWebView alloc] initWithFrame:[self bounds] configuration:[self configuration]];
+        [_webView.configuration.userContentController addScriptMessageHandler:self name:@"Ti"];
+        
         [_webView setUIDelegate:self];
         [_webView setNavigationDelegate:self];
         [_webView setContentMode:[self contentModeForWebView]];
@@ -240,7 +242,7 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
 - (WKWebViewConfiguration*)configuration
 {
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-    WKUserContentController *controller = [self userContentController];
+    WKUserContentController *controller = [[WKUserContentController alloc] init];
 
     id suppressesIncrementalRendering = [[self proxy] valueForKey:@"suppressesIncrementalRendering"];
     id scalePageToFit = [[self proxy] valueForKey:@"scalePageToFit"];
@@ -268,13 +270,6 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     [config setUserContentController:controller];
 
     return [config autorelease];
-}
-
-- (WKUserContentController*)userContentController
-{
-    WKUserContentController *wkUController = [[WKUserContentController alloc] init];
-    
-    return [wkUController autorelease];
 }
 
 + (WKUserScript*)userScriptScalePageToFit
@@ -307,7 +302,7 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     NSString *config = [NSString stringWithFormat:@"window.%@={};window.Ti=%@;Ti.pageToken=%@;Ti.appId='%@';",ti, ti, pageToken,TI_APPLICATION_ID];
     
     return [[WKUserScript alloc] initWithSource:[NSString stringWithFormat:@"%@ %@", config, kTitaniumJavascript]
-                                  injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                  injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
                                forMainFrameOnly:YES];
 }
 
@@ -518,6 +513,19 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         return UIViewContentModeScaleAspectFit;
     } else {
         return UIViewContentModeScaleToFill;
+    }
+}
+
+- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message
+{
+    if ([[self proxy] _hasListeners:@"message"]) {
+        // TODO: May need to bridge the body type for data
+        [[self proxy] fireEvent:@"message" withObject:@{
+            @"url": message.frameInfo.request.URL.absoluteString ?: [[NSBundle mainBundle] bundlePath],
+            @"message": message.body,
+            @"name": message.name,
+            @"mainFrame": NUMBOOL(message.frameInfo.isMainFrame)
+        }];
     }
 }
 

@@ -10,7 +10,7 @@
 #import "TiDimension.h"
 #import <WebKit/WebKit.h>
 
-@interface TiUIiOSWebView : TiUIView <WKUIDelegate, WKNavigationDelegate> {
+@interface TiUIiOSWebView : TiUIView <WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler> {
     WKWebView *_webView;
     NSString *pageToken;
 
