@@ -85,7 +85,8 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         [[[[self webView] configuration] userContentController] addUserScript:[TiUIiOSWebView userScriptTitaniumGlobalEventSupport]];
 
         NSString *path = [self pathFromComponents:@[[TiUtils stringValue:value]]];
-        [[self webView] loadFileURL:[NSURL URLWithString:path] allowingReadAccessToURL:[NSURL URLWithString:path]];
+        [[self webView] loadFileURL:[NSURL fileURLWithPath:path]
+            allowingReadAccessToURL:[NSURL fileURLWithPath:[path stringByDeletingLastPathComponent]]];
     }
 }
 
