@@ -19,9 +19,59 @@
     return (TiUIiOSWebView*)self.view;
 }
 
+- (id)url
+{
+    return [[[[self webView] webView] URL] absoluteString];
+}
+
+- (id)title
+{
+    return [[[self webView] webView] title];
+}
+
+- (id)progress
+{
+    return NUMDOUBLE([[[self webView] webView] estimatedProgress]);
+}
+
+- (id)loading
+{
+    return NUMBOOL([[[self webView] webView] isLoading]);
+}
+
+- (id)secure
+{
+    return NUMBOOL([[[self webView] webView] hasOnlySecureContent]);
+}
+
 - (void)stopLoading:(id)unused
 {
     [[[self webView] webView] stopLoading];
+}
+
+- (void)reload:(id)unused
+{
+    [[[self webView] webView] reload];
+}
+
+- (void)goBack:(id)unused
+{
+    [[[self webView] webView] goBack];
+}
+
+- (void)goForward:(id)unused
+{
+    [[[self webView] webView] goForward];
+}
+
+- (id)canGoBack:(id)unused
+{
+    return NUMBOOL([[[self webView] webView] canGoBack]);
+}
+
+- (id)canGoForward:(id)unused
+{
+    return NUMBOOL([[[self webView] webView] canGoForward]);
 }
 
 // Callback based in this API to avoid dead-locks

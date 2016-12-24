@@ -45,6 +45,9 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         [_webView setContentMode:[self contentModeForWebView]];
         [_webView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
         
+        // KVO for "progress" event
+        [_webView addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:NULL];
+        
         [self addSubview:_webView];
     }
     
@@ -150,10 +153,42 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     [[[self webView] scrollView] setBounces:![TiUtils boolValue:value]];
 }
 
+- (id)disableBounce
+{
+    return NUMBOOL(![[[self webView] scrollView] bounces]);
+}
+
 - (void)setScrollsToTop_:(id)value
 {
     [[self proxy] replaceValue:value forKey:@"scrollsToTop" notification:NO];
     [[[self webView] scrollView] setScrollsToTop:[TiUtils boolValue:value def:YES]];
+}
+
+- (id)scrollsToTop
+{
+    return NUMBOOL([[[self webView] scrollView] scrollsToTop]);
+}
+
+- (void)setAllowsBackForwardNavigationGestures_:(id)value
+{
+    [[self proxy] replaceValue:value forKey:@"allowsBackForwardNavigationGestures" notification:NO];
+    [[self webView] setAllowsBackForwardNavigationGestures:[TiUtils boolValue:value def:NO]];
+}
+
+- (id)allowsBackForwardNavigationGestures
+{
+    return NUMBOOL([[self webView] allowsBackForwardNavigationGestures]);
+}
+
+- (void)setUserAgent_:(id)value
+{
+    [[self proxy] replaceValue:value forKey:@"userAgent" notification:NO];
+    [[self webView] setCustomUserAgent:[TiUtils stringValue:value]];
+}
+
+- (id)userAgent
+{
+    return [[self webView] customUserAgent] ?: [NSNull null];
 }
 
 #pragma mark Delegates
@@ -163,28 +198,28 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     // Use own event to notify the user that the web view started
     // to receive content but did not finish, yet
     if ([[self proxy] _hasListeners:@"loadprogress"]) {
-        [[self proxy] fireEvent:@"loadprogress" withObject:@{@"url": webView.URL.absoluteString}];
+        [[self proxy] fireEvent:@"loadprogress" withObject:@{@"url": webView.URL.absoluteString, @"title": webView.title}];
     }
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
 {
     if ([[self proxy] _hasListeners:@"load"]) {
-        [[self proxy] fireEvent:@"load" withObject:@{@"url": webView.URL.absoluteString}];
+        [[self proxy] fireEvent:@"load" withObject:@{@"url": webView.URL.absoluteString, @"title": webView.title}];
     }
 }
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error
 {
     if ([[self proxy] _hasListeners:@"error"]) {
-        [[self proxy] fireEvent:@"error" withObject:@{@"url": webView.URL.absoluteString, @"error": [error localizedDescription]}];
+        [[self proxy] fireEvent:@"error" withObject:@{@"url": webView.URL.absoluteString, @"title": webView.title, @"error": [error localizedDescription]}];
     }
 }
 
 - (void)webView:(WKWebView *)webView didReceiveServerRedirectForProvisionalNavigation:(WKNavigation *)navigation
 {
     if ([[self proxy] _hasListeners:@"redirect"]) {
-        [[self proxy] fireEvent:@"redirect" withObject:@{@"url": webView.URL.absoluteString}];
+        [[self proxy] fireEvent:@"redirect" withObject:@{@"url": webView.URL.absoluteString, @"title": webView.title}];
     }
 }
 
@@ -247,17 +282,12 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
 
     id suppressesIncrementalRendering = [[self proxy] valueForKey:@"suppressesIncrementalRendering"];
     id scalePageToFit = [[self proxy] valueForKey:@"scalePageToFit"];
-    id userAgent = [[self proxy] valueForKey:@"userAgent"];
     id allowsInlineMediaPlayback = [[self proxy] valueForKey:@"allowsInlineMediaPlayback"];
     id allowsAirPlayForMediaPlayback = [[self proxy] valueForKey:@"allowsAirPlayForMediaPlayback"];
     id allowsPictureInPictureMediaPlayback = [[self proxy] valueForKey:@"allowsPictureInPictureMediaPlayback"];
     
     if ([TiUtils boolValue:scalePageToFit def:YES]) {
         [controller addUserScript:[TiUIiOSWebView userScriptScalePageToFit]];
-    }
-    
-    if (userAgent) {
-        [config setApplicationNameForUserAgent:[TiUtils stringValue:userAgent]];
     }
     
     [config setSuppressesIncrementalRendering:[TiUtils boolValue:suppressesIncrementalRendering def:NO]];
@@ -517,6 +547,11 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     }
 }
 
+- (BOOL)webView:(WKWebView *)webView shouldPreviewElement:(WKPreviewElementInfo *)elementInfo
+{
+    return [TiUtils boolValue:[[self proxy] valueForKey:@"allowsLinkPreview"] def:NO];
+}
+
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message
 {
     if ([[self proxy] _hasListeners:@"message"]) {
@@ -527,6 +562,19 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
             @"name": message.name,
             @"mainFrame": NUMBOOL(message.frameInfo.isMainFrame)
         }];
+    }
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"estimatedProgress"] && object == [self webView]) {
+        if ([[self proxy] _hasListeners:@"progress"]) {
+            [[self proxy] fireEvent:@"progress" withObject:@{
+                @"progress": NUMDOUBLE([[self webView] estimatedProgress]),
+                @"url": [[[self webView] URL] absoluteString]
+            }];
+        }
+    } else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 
