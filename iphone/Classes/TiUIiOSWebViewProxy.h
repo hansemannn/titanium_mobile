@@ -9,14 +9,9 @@
 #import "TiViewProxy.h"
 #import "TiEvaluator.h"
 
-@interface TiUIiOSWebViewProxy : TiViewProxy<TiEvaluator> {
-    NSString *pageToken;
-    NSString *evalResult;
-    NSArray *webKeySequence;
-    BOOL inKJSThread;
-}
+@interface TiUIiOSWebViewProxy : TiViewProxy{
 
--(void)setPageToken:(NSString*)pageToken;
+}
 
 @end
 

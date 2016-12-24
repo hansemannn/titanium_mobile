@@ -16,22 +16,6 @@
 
 #pragma mark Internal API's
 
-extern NSString * const TI_APPLICATION_ID;
-
-static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._listeners={};Ti.App._listener_id=1;Ti.App.id=Ti.appId;Ti.App._xhr=XMLHttpRequest;"
-"Ti._broker=function(module,method,data){try{var url='app://'+Ti.appId+'/_TiA0_'+Ti.pageToken+'/'+module+'/'+method+'?'+Ti.App._JSON(data,1);"
-"var xhr=new Ti.App._xhr();xhr.open('GET',url,false);xhr.send()}catch(X){}};"
-"Ti._hexish=function(a){var r='';var e=a.length;var c=0;var h;while(c<e){h=a.charCodeAt(c++).toString(16);r+='\\\\u';var l=4-h.length;while(l-->0){r+='0'};r+=h}return r};"
-"Ti._bridgeEnc=function(o){return'<'+Ti._hexish(o)+'>'};"
-"Ti.App._JSON=function(object,bridge){var type=typeof object;switch(type){case'undefined':case'function':case'unknown':return undefined;case'number':case'boolean':return object;"
-"case'string':if(bridge===1)return Ti._bridgeEnc(object);return'\"'+object.replace(/\"/g,'\\\\\"').replace(/\\n/g,'\\\\n').replace(/\\r/g,'\\\\r')+'\"'}"
-"if((object===null)||(object.nodeType==1))return'null';if(object.constructor.toString().indexOf('Date')!=-1){return'new Date('+object.getTime()+')'}"
-"if(object.constructor.toString().indexOf('Array')!=-1){var res='[';var pre='';var len=object.length;for(var i=0;i<len;i++){var value=object[i];"
-"if(value!==undefined)value=Ti.App._JSON(value,bridge);if(value!==undefined){res+=pre+value;pre=', '}}return res+']'}var objects=[];"
-"for(var prop in object){var value=object[prop];if(value!==undefined){value=Ti.App._JSON(value,bridge)}"
-"if(value!==undefined){objects.push(Ti.App._JSON(prop,bridge)+': '+value)}}return'{'+objects.join(',')+'}'};"
-"Ti.App._dispatchEvent=function(type,evtid,evt){var listeners=Ti.App._listeners[type];if(listeners){for(var c=0;c<listeners.length;c++){var entry=listeners[c];if(entry.id==evtid){entry.callback.call(entry.callback,evt)}}}};Ti.App.fireEvent=function(name,evt){Ti._broker('App','fireEvent',{name:name,event:evt})};Ti.API.log=function(a,b){Ti._broker('API','log',{level:a,message:b})};Ti.API.debug=function(e){Ti._broker('API','log',{level:'debug',message:e})};Ti.API.error=function(e){Ti._broker('API','log',{level:'error',message:e})};Ti.API.info=function(e){Ti._broker('API','log',{level:'info',message:e})};Ti.API.fatal=function(e){Ti._broker('API','log',{level:'fatal',message:e})};Ti.API.warn=function(e){Ti._broker('API','log',{level:'warn',message:e})};Ti.App.addEventListener=function(name,fn){var listeners=Ti.App._listeners[name];if(typeof(listeners)=='undefined'){listeners=[];Ti.App._listeners[name]=listeners}var newid=Ti.pageToken+Ti.App._listener_id++;listeners.push({callback:fn,id:newid});Ti._broker('App','addEventListener',{name:name,id:newid})};Ti.App.removeEventListener=function(name,fn){var listeners=Ti.App._listeners[name];if(listeners){for(var c=0;c<listeners.length;c++){var entry=listeners[c];if(entry.callback==fn){listeners.splice(c,1);Ti._broker('App','removeEventListener',{name:name,id:entry.id});break}}}};";
-
 - (WKWebView*)webView
 {
     if (_webView == nil) {
@@ -84,9 +68,6 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         
     // Handle local URL's (WiP)
     } else {
-        // Inject Titanium event support
-        [[[[self webView] configuration] userContentController] addUserScript:[TiUIiOSWebView userScriptTitaniumGlobalEventSupport]];
-
         NSString *path = [self pathFromComponents:@[[TiUtils stringValue:value]]];
         [[self webView] loadFileURL:[NSURL fileURLWithPath:path]
             allowingReadAccessToURL:[NSURL fileURLWithPath:[path stringByDeletingLastPathComponent]]];
@@ -115,9 +96,6 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         NSLog(@"[ERROR] Ti.UI.iOS.WebView.data can only be a TiBlob or TiFile object, was %@", [(TiProxy*)value apiName]);
     }
     
-    // Inject Titanium event support
-    [[[[self webView] configuration] userContentController] addUserScript:[TiUIiOSWebView userScriptTitaniumGlobalEventSupport]];
-    
     [[self webView] loadData:data
                     MIMEType:[TiUIiOSWebView mimeTypeForData:data]
        characterEncodingName:@"UTF-8" // TODO: Support other character-encodings as well
@@ -141,9 +119,6 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         [[self proxy] fireEvent:@"beforeload" withObject:@{@"url": [[NSBundle mainBundle] bundlePath], @"html": content}];
     }
     
-    // Inject Titanium event support
-    content = [[self class] content:[TiUtils stringValue:value] withInjection:[self titaniumInjection]];
-    
     [[self webView] loadHTMLString:content baseURL:nil];
 }
 
@@ -153,20 +128,10 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     [[[self webView] scrollView] setBounces:![TiUtils boolValue:value]];
 }
 
-- (id)disableBounce
-{
-    return NUMBOOL(![[[self webView] scrollView] bounces]);
-}
-
 - (void)setScrollsToTop_:(id)value
 {
     [[self proxy] replaceValue:value forKey:@"scrollsToTop" notification:NO];
     [[[self webView] scrollView] setScrollsToTop:[TiUtils boolValue:value def:YES]];
-}
-
-- (id)scrollsToTop
-{
-    return NUMBOOL([[[self webView] scrollView] scrollsToTop]);
 }
 
 - (void)setAllowsBackForwardNavigationGestures_:(id)value
@@ -175,20 +140,10 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     [[self webView] setAllowsBackForwardNavigationGestures:[TiUtils boolValue:value def:NO]];
 }
 
-- (id)allowsBackForwardNavigationGestures
-{
-    return NUMBOOL([[self webView] allowsBackForwardNavigationGestures]);
-}
-
 - (void)setUserAgent_:(id)value
 {
     [[self proxy] replaceValue:value forKey:@"userAgent" notification:NO];
     [[self webView] setCustomUserAgent:[TiUtils stringValue:value]];
-}
-
-- (id)userAgent
-{
-    return [[self webView] customUserAgent] ?: [NSNull null];
 }
 
 #pragma mark Delegates
@@ -223,57 +178,25 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     }
 }
 
+- (BOOL)webView:(WKWebView *)webView shouldPreviewElement:(WKPreviewElementInfo *)elementInfo
+{
+    return [TiUtils boolValue:[[self proxy] valueForKey:@"allowsLinkPreview"] def:NO];
+}
+
+- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message
+{
+    if ([[self proxy] _hasListeners:@"message"]) {
+        // TODO: May need to bridge the body type for data
+        [[self proxy] fireEvent:@"message" withObject:@{
+            @"url": message.frameInfo.request.URL.absoluteString ?: [[NSBundle mainBundle] bundlePath],
+            @"message": message.body,
+            @"name": message.name,
+            @"isMainFrame": NUMBOOL(message.frameInfo.isMainFrame)
+        }];
+    }
+}
+
 #pragma mark Utilities
-
-- (NSString *)titaniumInjection
-{
-    if (pageToken==nil) {
-        pageToken = [[NSString stringWithFormat:@"%lu",(unsigned long)[self hash]] retain];
-        [(TiUIiOSWebViewProxy*)self.proxy setPageToken:pageToken];
-    }
-    
-    NSMutableString *html = [[[NSMutableString alloc] init] autorelease];
-    [html appendString:@"<script id='__ti_injection'>"];
-    NSString *ti = [NSString stringWithFormat:@"%@%s",@"Ti","tanium"];
-    [html appendFormat:@"window.%@={};window.Ti=%@;Ti.pageToken=%@;Ti.appId='%@';",ti,ti,pageToken,TI_APPLICATION_ID];
-    [html appendString:kTitaniumJavascript];
-    [html appendString:@"</script>"];
-    
-    return html;
-}
-
-+ (NSString *)content:(NSString *)content withInjection:(NSString *)injection
-{
-    if ([content length] == 0) {
-        return content;
-    }
-    // attempt to make well-formed HTML and inject in our Titanium bridge code
-    // However, we only do this if the content looks like HTML
-    NSRange range = [content rangeOfString:@"<html"];
-    if (range.location == NSNotFound) {
-        //TODO: Someone did a DOCTYPE, and our search wouldn't find it. This search is tailored for him
-        //to cause the bug to go away, but is this really the right thing to do? Shouldn't we have a better
-        //way to check?
-        range = [content rangeOfString:@"<!DOCTYPE html"];
-    }
-    
-    if (range.location != NSNotFound) {
-        NSMutableString *html = [[NSMutableString alloc] initWithCapacity:[content length]+2000];
-        NSRange nextRange = [content rangeOfString:@">" options:0 range:NSMakeRange(range.location, [content length]-range.location) locale:nil];
-        if (nextRange.location != NSNotFound) {
-            [html appendString:[content substringToIndex:nextRange.location+1]];
-            [html appendString:injection];
-            [html appendString:[content substringFromIndex:nextRange.location+1]];
-        } else {
-            // oh well, just jack it in
-            [html appendString:injection];
-            [html appendString:content];
-        }
-        
-        return [html autorelease];
-    }
-    return content;
-}
 
 - (WKWebViewConfiguration*)configuration
 {
@@ -326,13 +249,9 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
                                forMainFrameOnly:YES];
 }
 
-+ (WKUserScript*)userScriptTitaniumGlobalEventSupport
++ (WKUserScript*)userScriptTitaniumJSEvaluationFromString:(NSString*)string
 {
-    NSString *pageToken = [NSString stringWithFormat:@"%lu",(unsigned long)[self hash]];
-    NSString *ti = [NSString stringWithFormat:@"%@%s",@"Ti","tanium"];
-    NSString *config = [NSString stringWithFormat:@"window.%@={};window.Ti=%@;Ti.pageToken=%@;Ti.appId='%@';",ti, ti, pageToken,TI_APPLICATION_ID];
-    
-    return [[WKUserScript alloc] initWithSource:[NSString stringWithFormat:@"%@ %@", config, kTitaniumJavascript]
+    return [[WKUserScript alloc] initWithSource:string
                                   injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
                                forMainFrameOnly:YES];
 }
@@ -361,8 +280,7 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
 
 -(id)resolveFile:(id)arg
 {
-    if ([arg isKindOfClass:[TiFilesystemFileProxy class]])
-    {
+    if ([arg isKindOfClass:[TiFilesystemFileProxy class]]) {
         return [(TiFilesystemFileProxy*)arg path];
     }
     return [TiUtils stringValue:arg];
@@ -417,47 +335,10 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
         if (error == nil && result != nil) {
             completionHandler([NSString stringWithFormat:@"%@", result], nil);
         } else {
-            NSLog(@"[ERROR] Evaluating JavaScript failed : %@", [error localizedDescription]);
+            NSLog(@"[DEBUG] Evaluating JavaScript failed : %@", [error localizedDescription]);
             completionHandler(nil, error);
         }
     }];
-}
-
-#pragma mark TiEvaluator
-
-- (void)evalFile:(NSString*)path
-{
-    NSURL *url_ = [path hasPrefix:@"file:"] ? [NSURL URLWithString:path] : [NSURL fileURLWithPath:path];
-    
-    if (![path hasPrefix:@"/"] && ![path hasPrefix:@"file:"]) {
-        NSURL *root = [[[self proxy] _host] baseURL];
-        url_ = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%@/%@",root,path]];
-    }
-    
-    NSString *sourceCode = [NSString stringWithContentsOfURL:url_ encoding:NSUTF8StringEncoding error:nil];
-    [[[[self webView] configuration] userContentController] addUserScript:[TiUIiOSWebView userScriptTitaniumJSEvaluationFromString:sourceCode]];
-}
-
-- (void)fireEvent:(id)listener withObject:(id)obj remove:(BOOL)yn thisObject:(id)thisObject_
-{
-    // don't bother firing an app event to the webview if we don't have a webview yet created
-    if ([self webView] != nil)
-    {
-        NSDictionary *event = (NSDictionary*)obj;
-        NSString *name = [event objectForKey:@"type"];
-        NSString *sourceCode = [NSString stringWithFormat:@"Ti.App._dispatchEvent('%@',%@,%@);",name,listener,[SBJSON stringify:event]];
-        
-        [self stringByEvaluatingJavaScriptFromString:sourceCode withCompletionHandler:^(NSString *result, NSError *error) {
-            // Evaluated
-        }];
-    }
-}
-
-+ (WKUserScript*)userScriptTitaniumJSEvaluationFromString:(NSString*)string
-{
-    return [[WKUserScript alloc] initWithSource:string
-                                  injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
-                               forMainFrameOnly:YES];
 }
 
 #pragma mark Layout helper
@@ -547,23 +428,7 @@ static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._list
     }
 }
 
-- (BOOL)webView:(WKWebView *)webView shouldPreviewElement:(WKPreviewElementInfo *)elementInfo
-{
-    return [TiUtils boolValue:[[self proxy] valueForKey:@"allowsLinkPreview"] def:NO];
-}
-
-- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message
-{
-    if ([[self proxy] _hasListeners:@"message"]) {
-        // TODO: May need to bridge the body type for data
-        [[self proxy] fireEvent:@"message" withObject:@{
-            @"url": message.frameInfo.request.URL.absoluteString ?: [[NSBundle mainBundle] bundlePath],
-            @"message": message.body,
-            @"name": message.name,
-            @"mainFrame": NUMBOOL(message.frameInfo.isMainFrame)
-        }];
-    }
-}
+#pragma mark KVO
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if ([keyPath isEqualToString:@"estimatedProgress"] && object == [self webView]) {
