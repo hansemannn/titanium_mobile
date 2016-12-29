@@ -1031,6 +1031,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         NSString* identifier = [TiUtils stringValue:@"identifier" properties:prop];
         int actionStyle = [TiUtils intValue:@"style" properties:prop def:UITableViewRowActionStyleDefault];
         TiColor* color = [TiUtils colorValue:@"color" properties:prop];
+        id image = [prop objectForKey:@"image"];
     
         UITableViewRowAction* theAction = [UITableViewRowAction rowActionWithStyle:actionStyle title:title handler:^(UITableViewRowAction *action, NSIndexPath *indexPath){
             NSString* eventName = @"editaction";
@@ -1063,9 +1064,22 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             [[self tableView] setEditing:NO];
 
         }];
+        
+        if (image) {
+            NSURL *url = [TiUtils toURL:image proxy:(TiProxy*)self.proxy];
+            UIImage *image = [[ImageLoader sharedLoader] loadImmediateImage:url];
+            
+            theAction.backgroundColor = [UIColor colorWithPatternImage:image];
+        }
+
         if (color) {
             theAction.backgroundColor = [color color];
         }
+        
+        if (color && image) {
+            NSLog(@"[ERROR] You cannot specify both `color` and `image` for edit actions. Will use `color` in this case.");
+        }
+        
         if (!returnArray) {
             returnArray = [NSMutableArray arrayWithObject:theAction];
         } else {
