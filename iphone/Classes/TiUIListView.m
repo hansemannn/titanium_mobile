@@ -1065,19 +1065,20 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
         }];
         
-        if (image) {
-            NSURL *url = [TiUtils toURL:image proxy:(TiProxy*)self.proxy];
-            UIImage *image = [[ImageLoader sharedLoader] loadImmediateImage:url];
-            
-            theAction.backgroundColor = [UIColor colorWithPatternImage:image];
-        }
-
+        
         if (color) {
             theAction.backgroundColor = [color color];
         }
         
-        if (color && image) {
-            NSLog(@"[ERROR] You cannot specify both `color` and `image` for edit actions. Will use `color` in this case.");
+        if (image) {
+            NSURL *url = [TiUtils toURL:image proxy:(TiProxy*)self.proxy];
+            UIImage *nativeImage = [[ImageLoader sharedLoader] loadImmediateImage:url];
+            
+            if (color) {
+                nativeImage = [self generateImage:nativeImage withBackgroundColor:[color color]];
+            }
+            
+            theAction.backgroundColor = [UIColor colorWithPatternImage:nativeImage];
         }
         
         if (!returnArray) {
@@ -2150,6 +2151,24 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 
 #pragma mark - Internal Methods
+
+- (UIImage *)generateImage:(UIImage *)image withBackgroundColor:(UIColor *)bgColor
+{
+    CGRect imageRect = CGRectMake(0, 0, image.size.width, image.size.height);
+    UIGraphicsBeginImageContextWithOptions(imageRect.size, false, [UIScreen mainScreen].scale);
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSaveGState(context);
+    
+    [bgColor setFill];
+    CGContextFillRect(context, imageRect);
+    [image drawInRect:imageRect];
+    
+    UIImage *result = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return result;
+}
 
 -(BOOL)isLazyLoadingEnabled
 {
