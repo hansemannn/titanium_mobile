@@ -721,6 +721,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 		for (NSString* newHeader in [newHeaders allKeys]) {
 			[newRequest addValue:[newHeaders valueForKey:newHeader] forHTTPHeaderField:newHeader];
 		}
+		RELEASE_TO_NIL(lastValidLoad);
 		[self loadURLRequest:newRequest];
 		[newRequest release];
         
