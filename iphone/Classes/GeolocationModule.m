@@ -306,22 +306,14 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
         }
 		locationManager.headingFilter = heading;
 
-        if ([TiUtils isIOS8OrGreater]) {
-            if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationAlwaysUsageDescription"]) {
-                [locationManager requestAlwaysAuthorization];
-            } else if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"]) {
-                [locationManager requestWhenInUseAuthorization];
-            } else {
-                NSLog(@"[ERROR] The keys NSLocationAlwaysUsageDescription or NSLocationWhenInUseUsageDescription are not defined in your tiapp.xml. Starting with iOS8 this is required.");
-            }
+        if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationAlwaysUsageDescription"]) {
+            [locationManager requestAlwaysAuthorization];
+        } else if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"]) {
+            [locationManager requestWhenInUseAuthorization];
         } else {
-            if (purpose != nil) {
-                DebugLog(@"[WARN] The Ti.Geolocation.purpose property is deprecated. On iOS6 and above include the NSLocationUsageDescription key in your Info.plist");
-                if ([locationManager respondsToSelector:@selector(setPurpose:)]) {
-                    [locationManager performSelector:@selector(setPurpose:) withObject:purpose];
-                }
-            }
+            NSLog(@"[ERROR] The keys NSLocationAlwaysUsageDescription or NSLocationWhenInUseUsageDescription are not defined in your tiapp.xml. Starting with iOS8 this is required.");
         }
+        
         //This is set to NO by default for > iOS9.
         if ([TiUtils isIOS9OrGreater]) {
             locationManager.allowsBackgroundLocationUpdates = allowsBackgroundLocationUpdates;
@@ -771,7 +763,7 @@ MAKE_SYSTEM_PROP(ACCURACY_BEST_FOR_NAVIGATION, kCLLocationAccuracyBestForNavigat
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_2
 MAKE_SYSTEM_PROP(AUTHORIZATION_UNKNOWN, kCLAuthorizationStatusNotDetermined);
-MAKE_SYSTEM_PROP(AUTHORIZATION_AUTHORIZED, kCLAuthorizationStatusAuthorized);
+MAKE_SYSTEM_PROP(AUTHORIZATION_AUTHORIZED, kCLAuthorizationStatusAuthorizedAlways);
 MAKE_SYSTEM_PROP(AUTHORIZATION_DENIED, kCLAuthorizationStatusDenied);
 MAKE_SYSTEM_PROP(AUTHORIZATION_RESTRICTED, kCLAuthorizationStatusRestricted);
 #else
@@ -788,28 +780,13 @@ MAKE_SYSTEM_PROP(ERROR_REGION_MONITORING_DENIED, kCLErrorRegionMonitoringDenied)
 MAKE_SYSTEM_PROP(ERROR_REGION_MONITORING_FAILURE, kCLErrorRegionMonitoringFailure);
 MAKE_SYSTEM_PROP(ERROR_REGION_MONITORING_DELAYED, kCLErrorRegionMonitoringSetupDelayed);
 
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_6_0
 MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER, CLActivityTypeOther);
 MAKE_SYSTEM_PROP(ACTIVITYTYPE_AUTOMOTIVE_NAVIGATION, CLActivityTypeAutomotiveNavigation);
 MAKE_SYSTEM_PROP(ACTIVITYTYPE_FITNESS, CLActivityTypeFitness);
 MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
-#endif
 
--(NSNumber*)AUTHORIZATION_ALWAYS
-{
-    if ([TiUtils isIOS8OrGreater]) {
-        return NUMINT(kCLAuthorizationStatusAuthorizedAlways);
-    }
-    return NUMINT(0);
-}
-
--(NSNumber*)AUTHORIZATION_WHEN_IN_USE
-{
-    if ([TiUtils isIOS8OrGreater]) {
-        return NUMINT(kCLAuthorizationStatusAuthorizedWhenInUse);
-    }
-    return NUMINT(0);
-}
+MAKE_SYSTEM_PROP(AUTHORIZATION_ALWAYS, kCLAuthorizationStatusAuthorizedAlways)
+MAKE_SYSTEM_PROP(AUTHORIZATION_WHEN_IN_USE, kCLAuthorizationStatusAuthorizedWhenInUse)
 
 -(CLLocationManager*)locationPermissionManager
 {
@@ -825,14 +802,12 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 {
     BOOL locationServicesEnabled = [CLLocationManager locationServicesEnabled];
     CLAuthorizationStatus currentPermissionLevel = [CLLocationManager authorizationStatus];
-    if ([TiUtils isIOS8OrGreater]) {
-        id value = [args objectAtIndex:0];
-        ENSURE_TYPE(value, NSNumber);
-        CLAuthorizationStatus requestedPermissionLevel = [TiUtils intValue: value];
-        return NUMBOOL(locationServicesEnabled && currentPermissionLevel == requestedPermissionLevel);
-    } else {
-        return NUMBOOL(locationServicesEnabled && currentPermissionLevel == kCLAuthorizationStatusAuthorized);
-    }
+
+    id value = [args objectAtIndex:0];
+    ENSURE_TYPE(value, NSNumber);
+    CLAuthorizationStatus requestedPermissionLevel = [TiUtils intValue: value];
+    
+    return NUMBOOL(locationServicesEnabled && currentPermissionLevel == requestedPermissionLevel);
 }
 
 -(void)requestAuthorization:(id)value
@@ -866,14 +841,6 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 
 -(void)requestLocationPermissions:(id)args
 {
-    if (![TiUtils isIOS8OrGreater]) {
-        // It is required that delegate is created and permission is presented in main thread.
-        TiThreadPerformOnMainThread(^{
-            [self requestLocationPermissioniOS7:args];
-        }, NO);
-        return;
-    }
-    
     id value = [args objectAtIndex:0];
     ENSURE_TYPE(value, NSNumber);
     
@@ -901,8 +868,7 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
     
     if(requested == kCLAuthorizationStatusAuthorizedWhenInUse) {
         if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"]) {
-            if ((currentPermissionLevel == kCLAuthorizationStatusAuthorizedAlways) ||
-               (currentPermissionLevel == kCLAuthorizationStatusAuthorized)) {
+            if ((currentPermissionLevel == kCLAuthorizationStatusAuthorizedAlways)) {
                 errorMessage = @"Cannot change already granted permission from AUTHORIZATION_ALWAYS to AUTHORIZATION_WHEN_IN_USE";
             } else {
                 TiThreadPerformOnMainThread(^{
@@ -913,7 +879,7 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
             errorMessage = @"The NSLocationWhenInUseUsageDescription key must be defined in your tiapp.xml in order to request this permission";
         }
     }
-    if ((requested == kCLAuthorizationStatusAuthorizedAlways) || (requested == kCLAuthorizationStatusAuthorized)) {
+    if ((requested == kCLAuthorizationStatusAuthorizedAlways)) {
         if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationAlwaysUsageDescription"]) {
             if (currentPermissionLevel == kCLAuthorizationStatusAuthorizedWhenInUse) {
                 errorMessage = @"Cannot change already granted permission from AUTHORIZATION_WHEN_IN_USE to AUTHORIZATION_ALWAYS";
@@ -970,15 +936,9 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 						   [NSNumber numberWithFloat:[newLocation course]],@"heading",
 						   [NSNumber numberWithFloat:[newLocation speed]],@"speed",
 						   [NSNumber numberWithLongLong:(long long)([[newLocation timestamp] timeIntervalSince1970] * 1000)],@"timestamp",
+						   [NSNumber numberWithInteger:[[newLocation floor] level]], @"level",
 						   nil];
-    
-    if ([TiUtils isIOS8OrGreater]) {
-        NSDictionary *floor = [NSDictionary dictionaryWithObjectsAndKeys:
-                               [NSNumber numberWithInteger:[[newLocation floor] level]],@"level",
-                               nil];
-        [data setObject:floor forKey:@"floor"];
-    }
-    
+
 	return data;
 }
 

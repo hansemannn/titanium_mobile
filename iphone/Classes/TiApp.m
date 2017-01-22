@@ -332,24 +332,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
         UIImage * defaultImage = [controller defaultImageForOrientation:
                                   (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]
                                                    resultingOrientation:&imageOrientation idiom:&imageIdiom];
-        if([TiUtils isIPad] && ![TiUtils isIOS8OrGreater]) {
-            CGAffineTransform transform;
-            switch ([[UIApplication sharedApplication] statusBarOrientation]) {
-                case UIInterfaceOrientationPortraitUpsideDown:
-                    transform = CGAffineTransformMakeRotation(M_PI);
-                    break;
-                case UIInterfaceOrientationLandscapeLeft:
-                    transform = CGAffineTransformMakeRotation(-M_PI_2);
-                    break;
-                case UIInterfaceOrientationLandscapeRight:
-                    transform = CGAffineTransformMakeRotation(M_PI_2);
-                    break;
-                default:
-                    transform = CGAffineTransformIdentity;
-                    break;
-            }
-            [splashScreenImage setTransform:transform];
-        }
+
         [splashScreenImage setImage: defaultImage];
         [splashScreenImage setFrame:[[UIScreen mainScreen] bounds]];
     }
@@ -1332,30 +1315,26 @@ performActionForShortcutItem:(UIApplicationShortcutItem *)shortcutItem
 	[self checkBackgroundServices];
 }
 
-#define NOTNIL(v) ((v==nil) ? (id)[NSNull null] : v)
+#define NOTNIL(v) (v ?: (id)[NSNull null])
 
 + (NSDictionary *)dictionaryWithLocalNotification:(UILocalNotification *)notification withIdentifier: (NSString *)identifier
 {
     if (notification == nil) {
         return nil;
     }
-    NSMutableDictionary* event = [NSMutableDictionary dictionary];
-    [event setObject:NOTNIL([notification fireDate]) forKey:@"date"];
-    [event setObject:NOTNIL([[notification timeZone] name]) forKey:@"timezone"];
-    [event setObject:NOTNIL([notification alertBody]) forKey:@"alertBody"];
-    [event setObject:NOTNIL([notification alertAction]) forKey:@"alertAction"];
-    [event setObject:NOTNIL([notification alertLaunchImage]) forKey:@"alertLaunchImage"];
-    [event setObject:NOTNIL([notification soundName]) forKey:@"sound"];
-    [event setObject:NUMINTEGER([notification applicationIconBadgeNumber]) forKey:@"badge"];
-    [event setObject:NOTNIL([notification userInfo]) forKey:@"userInfo"];
-	//include category for ios8
-	if ([TiUtils isIOS8OrGreater]) {
-		[event setObject:NOTNIL([notification category]) forKey:@"category"];
-		[event setObject:NOTNIL(identifier) forKey:@"identifier"];
-	}
-	
-	return event;
-    
+
+    return @{
+        @"date": NOTNIL([notification fireDate]),
+        @"timezone": NOTNIL([[notification timeZone] name]),
+        @"alertBody": NOTNIL([notification alertBody]),
+        @"alertAction": NOTNIL([notification alertAction]),
+        @"alertLaunchImage": NOTNIL([notification alertLaunchImage]),
+        @"sound": NOTNIL([notification soundName]),
+        @"badge": NUMINTEGER([notification applicationIconBadgeNumber]),
+        @"userInfo": NOTNIL([notification userInfo]),
+        @"category": NOTNIL([notification category]),
+        @"identifier": NOTNIL(identifier)
+    };
 }
 + (NSDictionary *)dictionaryWithLocalNotification:(UILocalNotification *)notification
 {

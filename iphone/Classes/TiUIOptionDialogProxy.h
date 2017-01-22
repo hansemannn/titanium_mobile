@@ -10,8 +10,6 @@
 @class TiViewProxy;
 
 @interface TiUIOptionDialogProxy : TiProxy<UIActionSheetDelegate,UIPopoverPresentationControllerDelegate> {
-
-    UIActionSheet *actionSheet;
     UIAlertController* alertController;
     TiViewProxy *dialogView;
     UIColor *tintColor;
@@ -25,10 +23,7 @@
     int destructiveButtonIndex;
 }
 
-@property(nonatomic,retain,readwrite)	TiViewProxy *dialogView;
-
--(void)deviceRotationBegan:(NSNotification *)notification;
--(void)updateOptionDialogNow;
+@property(nonatomic,retain,readwrite) TiViewProxy *dialogView;
 
 @end
 

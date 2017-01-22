@@ -416,30 +416,6 @@
     [super resignFocus];
 }
 
--(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
-{
-    if ([self viewAttached]) {
-        [navController willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
-    }
-    [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
-}
--(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
-{
-    if ([self viewAttached]) {
-        [navController willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
-    }
-    [super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
-}
--(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
-{
-    if ([self viewAttached]) {
-        [navController didRotateFromInterfaceOrientation:fromInterfaceOrientation];
-    }
-    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
-}
-
-
-
 #pragma mark - TiViewProxy overrides
 -(TiUIView*)newView
 {

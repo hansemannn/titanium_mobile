@@ -30,9 +30,6 @@
     TiDimension poHeight;
 }
 
--(void)updatePopover:(NSNotification *)notification;
-
-
 @end
 
 #endif

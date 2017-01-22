@@ -16,9 +16,11 @@
     return @"Ti.UI.iOS.SystemButtonStyle";
 }
 
-
 MAKE_SYSTEM_PROP(DONE,UIBarButtonItemStyleDone);
-MAKE_SYSTEM_PROP(BORDERED,UIBarButtonItemStyleBordered);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+MAKE_SYSTEM_PROP_DEPRECATED_REMOVED(BORDERED,UIBarButtonItemStyleBordered,@"UI.iOS.SystemButtonStyle.PLAIN",@"6.1.0",@"7.0.0");
+#pragma GCC diagnostic pop
 MAKE_SYSTEM_PROP(PLAIN,UIBarButtonItemStylePlain);
 @end
 
