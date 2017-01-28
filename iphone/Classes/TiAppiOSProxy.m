@@ -20,12 +20,6 @@
 #import "TiAppiOSSearchableItemProxy.h"
 #import "TiAppiOSSearchableIndexProxy.h"
 
-#if IS_XCODE_8
-#ifdef USE_TI_APPIOSSEARCHQUERY
-#import "TiAppiOSSearchQueryProxy.h"
-#endif
-#endif
-
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <CoreLocation/CLCircularRegion.h>
 
@@ -284,7 +278,7 @@
     
     ENSURE_SINGLE_ARG(args, NSDictionary);
         
-    return [[[TiAppiOSSearchQueryProxy alloc] _initWithPageContext:[self pageContext] andArguments:args] autorelease];
+    return [[[TiAppiOSSearchQueryProxy alloc] _initWithPageContext:self.pageContext arguments:args] autorelease];
 }
 #endif
 #endif
