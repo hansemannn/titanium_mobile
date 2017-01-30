@@ -16,15 +16,9 @@
 -(id)_initWithPageContext:(id<TiEvaluator>)context item:(MPMediaItem*)item_
 {
 	if (self = [super _initWithPageContext:context]) {
-		item = [item_ retain];
+        item = item_;
 	}
 	return self;
-}
-
--(void)dealloc
-{
-	RELEASE_TO_NIL(item);
-	[super dealloc];
 }
 
 -(NSString*)apiName
@@ -43,7 +37,7 @@
 {
 	MPMediaItemArtwork* artwork = [item valueForProperty:MPMediaItemPropertyArtwork];
 	if (artwork != nil) {
-		return [[[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:[artwork imageWithSize:[artwork imageCropRect].size]] autorelease];
+		return [[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:[artwork imageWithSize:[artwork imageCropRect].size]];
 	}
 	return nil;
 }

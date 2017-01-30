@@ -75,14 +75,8 @@ NSArray* moviePlayerKeys = nil;
 	
     TiThreadPerformOnMainThread(^{
         [[NSNotificationCenter defaultCenter] removeObserver:self];
-        RELEASE_TO_NIL(movie);
     }, YES);
 
-	RELEASE_TO_NIL(thumbnailCallback);
-	RELEASE_TO_NIL(tempFile);
-	RELEASE_TO_NIL(url);
-	RELEASE_TO_NIL(loadProperties);
-	RELEASE_TO_NIL(playerLock);
 	[super _destroy];
 }
 
@@ -202,7 +196,6 @@ NSArray* moviePlayerKeys = nil;
 {
 	[movie stop];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-	RELEASE_TO_NIL(movie);
 	reallyAttached = NO;
 }
 
@@ -353,8 +346,7 @@ NSArray* moviePlayerKeys = nil;
 		}
 		else if ([blob type] == TiBlobTypeData)
 		{
-			RELEASE_TO_NIL(tempFile);
-			tempFile = [[TiUtils createTempFile:@"mov"] retain];
+            tempFile = [TiUtils createTempFile:@"mov"];
 			[blob writeTo:[tempFile path] error:nil];
 			[self setUrl:[NSURL fileURLWithPath:[tempFile path]]];
 		}
@@ -402,8 +394,7 @@ NSArray* moviePlayerKeys = nil;
     if ([url isEqual:newUrl]) {
         return;
     }
-	RELEASE_TO_NIL(url);
-	url = [newUrl retain];
+    url = newUrl;
     loaded = NO;
 	sizeSet = NO;
 	if (movie!=nil)
@@ -489,9 +480,8 @@ NSArray* moviePlayerKeys = nil;
         NSNumber* option = [args objectAtIndex:1];
         TiThreadPerformOnMainThread(^{
             [movie cancelAllThumbnailImageRequests];
-            RELEASE_TO_NIL(thumbnailCallback);
             callbackRequestCount = [array count];
-            thumbnailCallback = [[args objectAtIndex:2] retain];
+            thumbnailCallback = (KrollCallback *)[args objectAtIndex:2];
             [movie requestThumbnailImagesAtTimes:array timeOption:[option intValue]];
         }, NO);
     }
@@ -501,8 +491,7 @@ NSArray* moviePlayerKeys = nil;
 {
 	[self replaceValue:color forKey:@"backgroundColor" notification:NO];
 	
-	RELEASE_TO_NIL(backgroundColor);
-	backgroundColor = [[TiUtils colorValue:color] retain];
+    backgroundColor = [TiUtils colorValue:color];
 	
 	if (movie != nil) {
 		UIView *background = [movie backgroundView];
@@ -577,8 +566,8 @@ NSArray* moviePlayerKeys = nil;
 {
 	if (![NSThread isMainThread]) {
 		__block id result;
-		TiThreadPerformOnMainThread(^{result = [[self fullscreen] retain];}, YES);
-		return [result autorelease];
+		TiThreadPerformOnMainThread(^{result = [self fullscreen];}, YES);
+        return result;
 	}
 	
 	if (movie != nil) {
@@ -849,7 +838,7 @@ NSArray* moviePlayerKeys = nil;
 		if (value==nil)
 		{
 			UIImage *image = [userinfo valueForKey:MPMoviePlayerThumbnailImageKey];
-			TiBlob *blob = [[[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:image] autorelease];
+			TiBlob *blob = [[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:image];
 			[event setObject:blob forKey:@"image"];
 		}
 		[event setObject:[userinfo valueForKey:MPMoviePlayerThumbnailTimeKey] forKey:@"time"];
@@ -857,7 +846,7 @@ NSArray* moviePlayerKeys = nil;
 		[self _fireEventToListener:@"thumbnail" withObject:event listener:thumbnailCallback thisObject:nil];
         
 		if (--callbackRequestCount <= 0) {
-			RELEASE_TO_NIL(thumbnailCallback);
+            thumbnailCallback = nil;
 		}
 	}
 }

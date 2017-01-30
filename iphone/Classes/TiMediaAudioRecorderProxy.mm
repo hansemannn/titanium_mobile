@@ -19,18 +19,11 @@
 
 #pragma mark Internal
 
--(void)dealloc
-{
-    RELEASE_TO_NIL(format);
-    RELEASE_TO_NIL(compression);
-    [super dealloc];
-}
-
 -(void)_configure
 {
     recorder = nil;
-    format = [[NSNumber numberWithUnsignedInt:kAudioFileCAFType] retain];
-    compression = [[NSNumber numberWithUnsignedInt:kAudioFormatLinearPCM] retain];
+    format = [NSNumber numberWithUnsignedInt:kAudioFileCAFType];
+    compression = [NSNumber numberWithUnsignedInt:kAudioFormatLinearPCM];
     curState = RecordStopped;
     [super _configure];
 }
@@ -38,7 +31,6 @@
 -(void)_destroy
 {
     [self stop:nil];
-    RELEASE_TO_NIL(file);
     [super _destroy];
 }
 
@@ -61,7 +53,7 @@
         [self throwException:@"Invalid State" subreason:@"Recorder already initialized. Please stop the current recording." location:CODELOCATION];
         return;
     }
-    RELEASE_TO_NIL(file);
+
     TiThreadPerformOnMainThread(^{
         [self configureRecorder];
         if (recorder != nil) {
@@ -80,6 +72,7 @@
     if (curState == RecordStopped) {
         return;
     }
+    
     __block TiFilesystemFileProxy *theProxy = nil;
     TiThreadPerformOnMainThread(^{
         if (recorder != nil) {
@@ -88,10 +81,10 @@
         }
         curState = RecordStopped;
         [[NSNotificationCenter defaultCenter] removeObserver:self];
-        theProxy = [[[TiFilesystemFileProxy alloc] initWithFile:[file path]] retain];
-        RELEASE_TO_NIL_AUTORELEASE(recorder);
+        theProxy = [[TiFilesystemFileProxy alloc] initWithFile:[file path]];
     }, YES);
-    return [theProxy autorelease];
+    
+    return theProxy;
 }
 
 -(void)pause:(id)args
@@ -177,7 +170,7 @@
             }
         }
         
-        file = [[TiUtils createTempFile:extension] retain];
+        file = [TiUtils createTempFile:extension];
         NSURL* url = [NSURL URLWithString:[file path]];
         
         NSMutableDictionary *recordSettings = [[NSMutableDictionary alloc] initWithCapacity:6];
@@ -210,11 +203,10 @@
         }
 
         NSError *error = nil;
-        recorder = [[[AVAudioRecorder alloc] initWithURL:url settings:recordSettings error:&error] retain];
-		RELEASE_TO_NIL(recordSettings);
+        recorder = [[AVAudioRecorder alloc] initWithURL:url settings:recordSettings error:&error];
+
         if (error != nil) {
-            DebugLog(@"Error initializing Recorder. Error %@",[error description]);
-            RELEASE_TO_NIL(recorder);
+            DebugLog(@"Error initializing Recorder. Error %@", [error description]);
         } else {
             recorder.delegate = self;
             [recorder prepareToRecord];

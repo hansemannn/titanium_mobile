@@ -18,7 +18,7 @@
 -(void)_initWithProperties:(NSDictionary *)properties
 {
 	volume = [TiUtils doubleValue:@"volume" properties:properties def:1.0];
-	url = [[TiUtils toURL:[properties objectForKey:@"url"] proxy:self] retain];
+    url = [TiUtils toURL:[properties objectForKey:@"url"] proxy:self];
 }
 
 -(void)_destroy
@@ -26,7 +26,6 @@
 	if (timer!=nil)
 	{
 		[timer invalidate];
-		RELEASE_TO_NIL(timer);
 	}
 	if (player!=nil)
 	{
@@ -36,8 +35,6 @@
 		}
 	}
 	[player setDelegate:nil];
-	RELEASE_TO_NIL(player);
-	RELEASE_TO_NIL(timer);
     [super _destroy];
 }
 
@@ -79,7 +76,7 @@
 		{
 			// create progress callback timer that fires once per second. we might want to eventually make this
 			// more configurable but for now that's sufficient for most apps that want to display progress updates on the stream
-			timer = [[NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(updateProgress:) userInfo:nil repeats:YES] retain];
+            timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(updateProgress:) userInfo:nil repeats:YES];
 		}
 	}
 	return player;
@@ -90,7 +87,6 @@
 	if (timer!=nil)
 	{
 		[timer invalidate];
-		RELEASE_TO_NIL(timer);
 	}
 	if (player!=nil)
 	{
@@ -100,7 +96,6 @@
 			[[TiMediaAudioSession sharedSession] stopAudioSession];
 		}
 		[player setDelegate:nil];
-		RELEASE_TO_NIL(player);
 	}
 }
 
@@ -211,9 +206,9 @@ PLAYER_PROP_DOUBLE(state,state);
 		TiThreadPerformOnMainThread(^{[self setUrl:args];}, YES);
 		return;
 	}
-	RELEASE_TO_NIL(url);
-	ENSURE_SINGLE_ARG(args,NSString);
-	url = [[TiUtils toURL:args proxy:self] retain];
+
+    ENSURE_SINGLE_ARG(args,NSString);
+    url = [TiUtils toURL:args proxy:self];
 	if (player!=nil)
 	{
 		[self restart:nil];

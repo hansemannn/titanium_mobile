@@ -47,9 +47,7 @@
 	[nc removeObserver:self name:MPMusicPlayerControllerNowPlayingItemDidChangeNotification object:player];
 	[nc removeObserver:self name:MPMusicPlayerControllerVolumeDidChangeNotification object:player];
 	
-	[player endGeneratingPlaybackNotifications];
-	
-	[super dealloc];
+	[player endGeneratingPlaybackNotifications];	
 }
 
 -(NSString*)apiName
@@ -160,7 +158,7 @@
 
 -(TiMediaItem*)nowPlaying
 {
-	return [[[TiMediaItem alloc] _initWithPageContext:[self pageContext] item:[player nowPlayingItem]] autorelease];
+    return [[TiMediaItem alloc] _initWithPageContext:[self pageContext] item:[player nowPlayingItem]];
 }
 
 -(NSNumber*)repeatMode

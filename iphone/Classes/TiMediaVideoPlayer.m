@@ -40,7 +40,6 @@
 	{
 		[spinner stopAnimating];
 		[spinner removeFromSuperview];
-		RELEASE_TO_NIL(spinner);
 	}
 }
 
@@ -67,13 +66,11 @@
     }
 	[[controller view] removeFromSuperview];
     [spinner removeFromSuperview];
-    RELEASE_TO_NIL(spinner);
-    RELEASE_TO_NIL(controller);
 
     if (controller_ == nil) {
         return;
     }
-    controller = [controller_ retain];
+    controller = controller_;
 	
 	[TiUtils setView:[controller view] positionRect:self.bounds];
 	[self addSubview:[controller view]];
@@ -128,9 +125,6 @@
 -(void)dealloc
 {
 	[[controller view] removeFromSuperview];
-	RELEASE_TO_NIL(controller);
-	RELEASE_TO_NIL(spinner);
-	[super dealloc];
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds

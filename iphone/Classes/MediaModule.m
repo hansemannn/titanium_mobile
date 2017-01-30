@@ -123,13 +123,7 @@ typedef void (^PermissionBlock)(BOOL granted)
 -(void)dealloc
 {
     [self destroyPicker];
-#ifdef USE_TI_MEDIAMUSICPLAYER
-    RELEASE_TO_NIL(systemMusicPlayer);
-    RELEASE_TO_NIL(appMusicPlayer);
-#endif
-    RELEASE_TO_NIL(popoverView);
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [super dealloc];
 }
 
 #pragma mark Static Properties
@@ -632,7 +626,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
                                                                     eventObject:[TiUtils dictionaryWithCode:(granted ? 0 : 1) message:nil]
                                                                      thisObject:self];
             [[callback context] enqueue:invocationEvent];
-            RELEASE_TO_NIL(invocationEvent);
         }];
     }, NO);
     
@@ -770,7 +763,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         }
     }
     
-    TiBlob *blob = [[[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:image] autorelease];
+    TiBlob *blob = [[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:image];
     NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"media"];
     [self _fireEventToListener:@"screenshot" withObject:event listener:arg thisObject:nil];
 }
@@ -801,7 +794,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         {
             UIImage * savedImage = [blob image];
             if (savedImage == nil) return;
-            UIImageWriteToSavedPhotosAlbum(savedImage, self, @selector(saveCompletedForImage:error:contextInfo:), [saveCallbacks retain]);
+            UIImageWriteToSavedPhotosAlbum(savedImage, self, @selector(saveCompletedForImage:error:contextInfo:), (__bridge void * _Nullable)(saveCallbacks));
         }
         else if ([mime hasPrefix:@"video/"])
         {
@@ -837,7 +830,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
                     return;
                 }
             }
-            UISaveVideoAtPathToSavedPhotosAlbum(filePath, self, @selector(saveCompletedForVideo:error:contextInfo:), [saveCallbacks retain]);
+            UISaveVideoAtPathToSavedPhotosAlbum(filePath, self, @selector(saveCompletedForVideo:error:contextInfo:), (__bridge void * _Nullable)(saveCallbacks));
         }
         else
         {
@@ -859,12 +852,12 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         if (mime == nil || [mime hasPrefix:@"image/"])
         {
             NSData *data = [NSData dataWithContentsOfFile:[file path]];
-            UIImage *image = [[[UIImage alloc] initWithData:data] autorelease];
-            UIImageWriteToSavedPhotosAlbum(image, self, @selector(saveCompletedForImage:error:contextInfo:), [saveCallbacks retain]);
+            UIImage *image = [[UIImage alloc] initWithData:data];
+            UIImageWriteToSavedPhotosAlbum(image, self, @selector(saveCompletedForImage:error:contextInfo:), (__bridge void * _Nullable)(saveCallbacks));
         }
         else if ([mime hasPrefix:@"video/"])
         {
-            UISaveVideoAtPathToSavedPhotosAlbum([file path], self, @selector(saveCompletedForVideo:error:contextInfo:), [saveCallbacks retain]);
+            UISaveVideoAtPathToSavedPhotosAlbum([file path], self, @selector(saveCompletedForVideo:error:contextInfo:), (__bridge void * _Nullable)(saveCallbacks));
         }
     }
     else
@@ -912,7 +905,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         }
         if (popover != nil) {
             [popover dismissPopoverAnimated:animatedPicker];
-            RELEASE_TO_NIL(popover);
             
             //Unregister for interface change notification
             [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
@@ -924,7 +916,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         if (cameraView != nil) {
             [cameraView windowDidClose];
             [self forgetProxy:cameraView];
-            RELEASE_TO_NIL(cameraView);
         }
         [self destroyPicker];
     }
@@ -1024,7 +1015,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
                                                                     eventObject:[TiUtils dictionaryWithCode:(granted ? 0 : 1) message:errorMessage]
                                                                      thisObject:self];
             [[callback context] enqueue:invocationEvent];
-            RELEASE_TO_NIL(invocationEvent);
         }];
     }, NO);
 }
@@ -1056,9 +1046,9 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
             BOOL granted = (status == PHAuthorizationStatusAuthorized);
             NSString *errorMessage = granted ? @"" : @"The user denied access to use the photo gallery.";
-            KrollEvent *invocationEvent = [[[KrollEvent alloc] initWithCallback:callback
+            KrollEvent *invocationEvent = [[KrollEvent alloc] initWithCallback:callback
                                                                    eventObject:[TiUtils dictionaryWithCode:(granted ? 0 : 1) message:errorMessage]
-                                                                    thisObject:self] autorelease];
+                                                                    thisObject:self];
             [[callback context] enqueue:invocationEvent];
         }];
     }, YES);
@@ -1208,14 +1198,12 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
                                                                         eventObject:[TiUtils dictionaryWithCode:(granted ? 0 : 1) message:nil]
                                                                          thisObject:self];
                 [[callback context] enqueue:invocationEvent];
-                RELEASE_TO_NIL(invocationEvent);
             }];
         }, NO);
     } else {
         NSDictionary * propertiesDict = [TiUtils dictionaryWithCode:0 message:nil];
         NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
         [callback call:invocationArray thisObject:self];
-        [invocationArray release];
         return;
     }
 }
@@ -1255,10 +1243,10 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         }
     }
     
-    MPMediaQuery* query = [[[MPMediaQuery alloc] initWithFilterPredicates:predicates] autorelease];
+    MPMediaQuery* query = [[MPMediaQuery alloc] initWithFilterPredicates:predicates];
     NSMutableArray* result = [NSMutableArray arrayWithCapacity:[[query items] count]];
     for (MPMediaItem* item in [query items]) {
-        TiMediaItem* newItem = [[[TiMediaItem alloc] _initWithPageContext:[self pageContext] item:item] autorelease];
+        TiMediaItem* newItem = [[TiMediaItem alloc] _initWithPageContext:[self pageContext] item:item];
         [result addObject:newItem];
     }
     return result;
@@ -1278,22 +1266,17 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     ENSURE_SINGLE_ARG_OR_NIL(args,NSDictionary);
     ENSURE_UI_THREAD(startVideoEditing,args);
     
-    RELEASE_TO_NIL(editor);
-    
     BOOL animated = [TiUtils boolValue:@"animated" properties:args def:YES];
     id media = [args objectForKey:@"media"];
     
     editorSuccessCallback = [args objectForKey:@"success"];
     ENSURE_TYPE_OR_NIL(editorSuccessCallback,KrollCallback);
-    [editorSuccessCallback retain];
     
     editorErrorCallback = [args objectForKey:@"error"];
     ENSURE_TYPE_OR_NIL(editorErrorCallback,KrollCallback);
-    [editorErrorCallback retain];
     
     editorCancelCallback = [args objectForKey:@"cancel"];
     ENSURE_TYPE_OR_NIL(pickerCancelCallback,KrollCallback);
-    [editorCancelCallback retain];
     
     //TODO: check canEditVideoAtPath
     
@@ -1319,7 +1302,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     }
     else
     {
-        RELEASE_TO_NIL(editor);
         NSLog(@"[ERROR] Unsupported video media: %@",[media class]);
         return;
     }
@@ -1337,7 +1319,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     {
         BOOL animated = [TiUtils boolValue:@"animated" properties:args def:YES];
         [[TiApp app] hideModalController:editor animated:animated];
-        RELEASE_TO_NIL(editor);
     }
 }
 #endif
@@ -1350,40 +1331,16 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
 -(void)destroyPickerCallbacks
 {
-	RELEASE_TO_NIL(editorSuccessCallback);
-	RELEASE_TO_NIL(editorErrorCallback);
-	RELEASE_TO_NIL(editorCancelCallback);
-	RELEASE_TO_NIL(pickerSuccessCallback);
-	RELEASE_TO_NIL(pickerErrorCallback);
-	RELEASE_TO_NIL(pickerCancelCallback);
+	// Unused since moving to ARC. Keeping here for possible third-party dependencies.
 }
 
 -(void)destroyPicker
 {
-	RELEASE_TO_NIL(popover);
 	[self forgetProxy:cameraView];
-    RELEASE_TO_NIL(cameraView);
-	RELEASE_TO_NIL(editorSuccessCallback);
-	RELEASE_TO_NIL(editorErrorCallback);
-	RELEASE_TO_NIL(editorCancelCallback);
-#ifdef USE_TI_MEDIAOPENMUSICLIBRARY
-	RELEASE_TO_NIL(musicPicker);
-#endif
-#if defined(USE_TI_MEDIASHOWCAMERA) || defined(USE_TI_MEDIAOPENPHOTOGALLERY)
-	RELEASE_TO_NIL(picker);
-#endif
-#if defined(USE_TI_MEDIASTARTVIDEOEDITING) || defined(USE_TI_MEDIASTOPVIDEOEDITING)
-    RELEASE_TO_NIL(editor);
-#endif
-    RELEASE_TO_NIL(pickerSuccessCallback);
-	RELEASE_TO_NIL(pickerErrorCallback);
-	RELEASE_TO_NIL(pickerCancelCallback);
-
 }
 
 -(void)dispatchCallback:(NSArray*)args
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSString *type = [args objectAtIndex:0];
     id object = [args objectAtIndex:1];
     id listener = [args objectAtIndex:2];
@@ -1393,12 +1350,11 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     // wait for the picker to dismiss with animation
     [NSThread sleepForTimeInterval:0.5];
     [self _fireEventToListener:type withObject:object listener:listener thisObject:nil];
-    [pool release];
 }
 
 -(void)sendPickerError:(int)code
 {
-	id listener = [[pickerErrorCallback retain] autorelease];
+    id listener = pickerErrorCallback;
 	[self destroyPicker];
 	if (listener!=nil)
 	{
@@ -1414,7 +1370,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
 -(void)sendPickerCancel
 {
-	id listener = [[pickerCancelCallback retain] autorelease];
+    id listener = pickerCancelCallback;
 	[self destroyPicker];
 	if (listener!=nil)
 	{
@@ -1430,7 +1386,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
 -(void)sendPickerSuccess:(id)event
 {
-	id listener = [[pickerSuccessCallback retain] autorelease];
+    id listener = pickerSuccessCallback;
 	if (autoHidePicker)
 	{
 		[self destroyPicker];
@@ -1450,15 +1406,12 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 	if (args!=nil) {
 		pickerSuccessCallback = [args objectForKey:@"success"];
 		ENSURE_TYPE_OR_NIL(pickerSuccessCallback,KrollCallback);
-		[pickerSuccessCallback retain];
 		
 		pickerErrorCallback = [args objectForKey:@"error"];
 		ENSURE_TYPE_OR_NIL(pickerErrorCallback,KrollCallback);
-		[pickerErrorCallback retain];
 		
 		pickerCancelCallback = [args objectForKey:@"cancel"];
 		ENSURE_TYPE_OR_NIL(pickerCancelCallback,KrollCallback);
-		[pickerCancelCallback retain];
 		
 		// we use this to determine if we should hide the camera after taking 
 		// a picture/video -- you can programmatically take multiple pictures
@@ -1486,7 +1439,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         [tiApp showModalController:picker_ animated:animatedPicker];
     }
     else {
-        RELEASE_TO_NIL(popover);
         TiViewProxy* popoverViewProxy = [args objectForKey:@"popoverView"];
         
         if (![popoverViewProxy isKindOfClass:[TiViewProxy class]]) {
@@ -1572,7 +1524,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 	if (popover)
 	{
 		[(UIPopoverController*)popover dismissPopoverAnimated:animatedPicker];
-		RELEASE_TO_NIL(popover);
 	}
 	else
 	{
@@ -1582,7 +1533,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     if (cameraView != nil) {
         [cameraView windowDidClose];
 		[self forgetProxy:cameraView];
-        RELEASE_TO_NIL(cameraView);
     }
 }
 
@@ -1717,7 +1667,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         if (cameraViewProxy!=nil)
         {
             ENSURE_TYPE(cameraViewProxy,TiViewProxy);
-            cameraView = [cameraViewProxy retain];
+            cameraView = cameraViewProxy;
             UIView *view = [cameraView view];
             
 #ifndef TI_USE_AUTOLAYOUT
@@ -1777,8 +1727,8 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 #ifdef USE_TI_MEDIASAVETOPHOTOGALLERY
 -(void)saveCompletedForImage:(UIImage*)image error:(NSError*)error contextInfo:(void*)contextInfo
 {
-	NSDictionary* saveCallbacks = (NSDictionary*)contextInfo;
-	TiBlob* blob = [[[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:image] autorelease];
+	NSDictionary* saveCallbacks = (__bridge NSDictionary *)contextInfo;
+	TiBlob* blob = [[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:image];
     
 	if (error != nil) {
 		KrollCallback* errorCallback = [saveCallbacks objectForKey:@"error"];
@@ -1810,7 +1760,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
 -(void)saveCompletedForVideo:(NSString*)path error:(NSError*)error contextInfo:(void*)contextInfo
 {
-	NSDictionary* saveCallbacks = (NSDictionary*)contextInfo;
+	NSDictionary* saveCallbacks = (__bridge NSDictionary*)contextInfo;
 	if (error != nil) {
 		KrollCallback* errorCallback = [saveCallbacks objectForKey:@"error"];
 		if (errorCallback != nil) {
@@ -1837,16 +1787,13 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 		[self dispatchCallback:@[@"success",event,successCallback]];
 #endif
 	}
-    
-    // This object was retained for use in this callback; release it.
-    [saveCallbacks release]; 
 }
 #endif
 
 #if defined(USE_TI_MEDIASHOWCAMERA) || defined(USE_TI_MEDIAOPENPHOTOGALLERY) || defined(USE_TI_MEDIASTARTVIDEOEDITING)
 -(void)handleTrimmedVideo:(NSURL*)theURL withDictionary:(NSDictionary*)dictionary
 {
-    TiBlob* media = [[[TiBlob alloc] _initWithPageContext:[self pageContext] andFile:[theURL path]] autorelease];
+    TiBlob* media = [[TiBlob alloc] _initWithPageContext:[self pageContext] andFile:[theURL path]];
     NSMutableDictionary* eventDict = [NSMutableDictionary dictionaryWithDictionary:dictionary];
     [eventDict setObject:media forKey:@"media"];
     if (saveToRoll) {
@@ -1861,13 +1808,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 #pragma mark UIPopoverControllerDelegate
 - (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController
 {
-#ifdef USE_TI_MEDIAOPENMUSICLIBRARY
-    if([popoverController contentViewController] == musicPicker) {
-        RELEASE_TO_NIL(musicPicker);
-    }
-#endif
-    
-    RELEASE_TO_NIL(popover);
     [self sendPickerCancel];
     //Unregister for interface change notification
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
@@ -1921,11 +1861,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
 - (void)popoverPresentationControllerDidDismissPopover:(UIPopoverPresentationController *)popoverPresentationController
 {
-#ifdef USE_TI_MEDIAOPENMUSICLIBRARY
-    if([popoverPresentationController presentedViewController] == musicPicker) {
-        RELEASE_TO_NIL(musicPicker);
-    }
-#endif
     [self sendPickerCancel];
 }
 
@@ -1958,7 +1893,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     if (isVideo) {
 
         UIImage *thumbnailImage = [editingInfo objectForKey:UIImagePickerControllerOriginalImage];
-        thumbnail = [[[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:thumbnailImage] autorelease];
+        thumbnail = [[TiBlob alloc] _initWithPageContext:[self pageContext] andImage:thumbnailImage];
 
         if (picker.allowsEditing) {
             NSNumber *startTime = [editingInfo objectForKey:@"_UIImagePickerControllerVideoEditingStart"];
@@ -2005,7 +1940,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
             }
         }
         
-        media = [[[TiBlob alloc] _initWithPageContext:[self pageContext] andFile:[mediaURL path]] autorelease];
+        media = [[TiBlob alloc] _initWithPageContext:[self pageContext] andFile:[mediaURL path]];
         if ([media mimeType] == nil) {
             [media setMimeType:@"video/mpeg" type:TiBlobTypeFile];
         }
@@ -2018,7 +1953,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         UIImage *editedImage = [editingInfo objectForKey:UIImagePickerControllerEditedImage];
         if ((mediaURL!=nil) && (editedImage == nil)) {
             
-            media = [[[TiBlob alloc] _initWithPageContext:[self pageContext] andFile:[mediaURL path]] autorelease];
+            media = [[TiBlob alloc] _initWithPageContext:[self pageContext] andFile:[mediaURL path]];
             [media setMimeType:@"image/jpeg" type:TiBlobTypeFile];
 			
             if (saveToRoll) {
@@ -2068,7 +2003,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
                 resultImage = [TiUtils adjustRotation:editedImage ?: originalImage];
             }
             
-            media = [[[TiBlob alloc] _initWithPageContext:[self pageContext]] autorelease];
+            media = [[TiBlob alloc] _initWithPageContext:[self pageContext]];
             [media setImage:resultImage];
 
             if (saveToRoll) {
@@ -2077,7 +2012,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         }
         
         if(isLivePhoto) {
-            livePhoto = [[[TiUIiOSLivePhoto alloc] _initWithPageContext:[self pageContext]] autorelease];
+            livePhoto = [[TiUIiOSLivePhoto alloc] _initWithPageContext:[self pageContext]];
             [livePhoto setLivePhoto:[editingInfo objectForKey:UIImagePickerControllerLivePhoto]];
         }
     }
@@ -2114,12 +2049,12 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 		[self closeModalPicker:musicPicker];
 	}
 	
-	TiMediaItem* representative = [[[TiMediaItem alloc] _initWithPageContext:[self pageContext] item:[collection representativeItem]] autorelease];
+	TiMediaItem* representative = [[TiMediaItem alloc] _initWithPageContext:[self pageContext] item:[collection representativeItem]];
 	NSNumber* mediaTypes = [NSNumber numberWithUnsignedInteger:[collection mediaTypes]];
 	NSMutableArray* items = [NSMutableArray array];
 	
 	for (MPMediaItem* item in [collection items]) {
-		TiMediaItem* newItem = [[[TiMediaItem alloc] _initWithPageContext:[self pageContext] item:item] autorelease];
+		TiMediaItem* newItem = [[TiMediaItem alloc] _initWithPageContext:[self pageContext] item:item];
 		[items addObject:newItem];
 	}
 	
@@ -2143,13 +2078,13 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 #ifdef USE_TI_MEDIASTARTVIDEOEDITING
 - (void)videoEditorController:(UIVideoEditorController *)editor_ didSaveEditedVideoToPath:(NSString *)editedVideoPath
 {
-	id listener = [[editorSuccessCallback retain] autorelease];
+	id listener = editorSuccessCallback;
 	[self closeModalPicker:editor_];
 	[self destroyPicker];
 
 	if (listener!=nil)
 	{
-		TiBlob *media = [[[TiBlob alloc]initWithFile:editedVideoPath] autorelease];
+		TiBlob *media = [[TiBlob alloc]initWithFile:editedVideoPath];
 		[media setMimeType:@"video/mpeg" type:TiBlobTypeFile];
 		NSMutableDictionary * event = [TiUtils dictionaryWithCode:0 message:nil];
 		[event setObject:NUMBOOL(NO) forKey:@"cancel"];
@@ -2165,7 +2100,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
 - (void)videoEditorControllerDidCancel:(UIVideoEditorController *)editor_
 { 
-	id listener = [[editorCancelCallback retain] autorelease];
+    id listener = editorCancelCallback;
 	[self closeModalPicker:editor_];
 	[self destroyPicker];
 
@@ -2184,7 +2119,7 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
 - (void)videoEditorController:(UIVideoEditorController *)editor_ didFailWithError:(NSError *)error
 {
-	id listener = [[editorErrorCallback retain] autorelease];
+    id listener = editorErrorCallback;
 	[self closeModalPicker:editor_];
 	[self destroyPicker];
 

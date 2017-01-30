@@ -144,13 +144,13 @@ NSString * const kTiMediaAudioSessionInputChange = @"TiMediaAudioSessionInputCha
     return [NSDictionary dictionaryWithObjectsAndKeys:inputArray, @"inputs", outputArray, @"outputs", nil];
 }
 
+
+
 - (void)dealloc {
     if ([self isActive]) {
         DeveloperLog(@"[WARN] AudioSession being deallocated is still active");
         [self deactivateSession];
     }
-    RELEASE_TO_NIL(lock);
-    [super dealloc];
 }
 
 -(id)init
@@ -211,10 +211,9 @@ NSString * const kTiMediaAudioSessionInputChange = @"TiMediaAudioSessionInputCha
 -(NSDictionary*)currentRoute
 {
     [self startAudioSession];
-    AVAudioSessionRouteDescription * curRoute = [[[AVAudioSession sharedInstance] currentRoute] retain];
+    AVAudioSessionRouteDescription * curRoute = [[AVAudioSession sharedInstance] currentRoute];
     [self stopAudioSession];
     NSDictionary* result = [self routeDescriptionToDictionary:curRoute];
-    [curRoute autorelease];
     return result;
 }
 
@@ -243,7 +242,7 @@ NSString * const kTiMediaAudioSessionInputChange = @"TiMediaAudioSessionInputCha
     [self startAudioSession];
     category = [[AVAudioSession sharedInstance] category];
     [self stopAudioSession];
-    return [[category copy] autorelease];
+    return [category copy];
 }
 
 -(void)setSessionMode:(NSString*)mode
