@@ -256,27 +256,27 @@
 -(void)setUrl:(id)url_
 {
 	if ([url_ isKindOfClass:[NSString class]]) {
-        url = [TiUtils toURL:url_ proxy:self];
+		url = [TiUtils toURL:url_ proxy:self];
 		if ([url isFileURL]==NO) {
 			// we need to download it and save it off into temp file
 			NSData *data = [NSData dataWithContentsOfURL:url];
 			NSString *ext = [[[url path] lastPathComponent] pathExtension];
             tempFile = [TiFile createTempFile:ext];
 			[data writeToFile:[tempFile path] atomically:YES];
-            url = [NSURL fileURLWithPath:[tempFile path]];
+			url = [NSURL fileURLWithPath:[tempFile path]];
 		}
 	} else if ([url_ isKindOfClass:[TiBlob class]]) {
 		TiBlob *blob = (TiBlob*)url_;
 		//TODO: for now we're only supporting File-type blobs
 		if ([blob type]==TiBlobTypeFile) {
-            url = [NSURL fileURLWithPath:[blob path]];
+			url = [NSURL fileURLWithPath:[blob path]];
 		}
 	} else if ([url_ isKindOfClass:[TiFile class]]) {
-        url = [NSURL fileURLWithPath:[(TiFile*)url_ path]];
+		url = [NSURL fileURLWithPath:[(TiFile*)url_ path]];
 	}
-    TiThreadPerformOnMainThread(^{
-        [self player];  // instantiate the player
-    }, YES);
+	TiThreadPerformOnMainThread(^{
+		[self player];  // instantiate the player
+	}, YES);
 }
 
 -(NSURL*)url

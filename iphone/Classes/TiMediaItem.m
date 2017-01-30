@@ -15,10 +15,10 @@
 
 -(id)_initWithPageContext:(id<TiEvaluator>)context item:(MPMediaItem*)item_
 {
-	if (self = [super _initWithPageContext:context]) {
+    if (self = [super _initWithPageContext:context]) {
         item = item_;
-	}
-	return self;
+    }
+    return self;
 }
 
 -(NSString*)apiName

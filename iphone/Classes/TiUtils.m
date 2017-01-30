@@ -501,7 +501,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 		return obj;
 	}
 	
-    NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
+	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
 
 	return [formatter numberFromString:[self stringValue:obj]];
 }
@@ -1115,7 +1115,7 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	if (result != nil)
 	{
 		if (exists != NULL) *exists = YES;
-        return result;
+		return result;
 	}
 	
 	if (exists != NULL) *exists = NO;
@@ -1315,7 +1315,7 @@ If the new path starts with / and the base url is app://..., we have to massage 
 		WebFont *font = [[WebFont alloc] init];
 		font.family = value;
 		font.size = 14;
-        return font;
+		return font;
 	}
 	return def;
 }

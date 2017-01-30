@@ -346,7 +346,7 @@ NSArray* moviePlayerKeys = nil;
 		}
 		else if ([blob type] == TiBlobTypeData)
 		{
-            tempFile = [TiUtils createTempFile:@"mov"];
+			tempFile = [TiUtils createTempFile:@"mov"];
 			[blob writeTo:[tempFile path] error:nil];
 			[self setUrl:[NSURL fileURLWithPath:[tempFile path]]];
 		}
@@ -491,7 +491,7 @@ NSArray* moviePlayerKeys = nil;
 {
 	[self replaceValue:color forKey:@"backgroundColor" notification:NO];
 	
-    backgroundColor = [TiUtils colorValue:color];
+	backgroundColor = [TiUtils colorValue:color];
 	
 	if (movie != nil) {
 		UIView *background = [movie backgroundView];
@@ -846,7 +846,7 @@ NSArray* moviePlayerKeys = nil;
 		[self _fireEventToListener:@"thumbnail" withObject:event listener:thumbnailCallback thisObject:nil];
         
 		if (--callbackRequestCount <= 0) {
-            thumbnailCallback = nil;
+			thumbnailCallback = nil;
 		}
 	}
 }
