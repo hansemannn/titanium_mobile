@@ -89,7 +89,7 @@
 		24CA8B68111161FE0084E2DE /* WebFont.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A10111161FD0084E2DE /* WebFont.m */; };
 		24CA8B6A111161FE0084E2DE /* UIModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A14111161FD0084E2DE /* UIModule.m */; };
 		24CA8B6C111161FE0084E2DE /* TiViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A18111161FD0084E2DE /* TiViewProxy.m */; };
-		24CA8B70111161FE0084E2DE /* TiUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A20111161FD0084E2DE /* TiUtils.m */; };
+		24CA8B70111161FE0084E2DE /* TiUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A20111161FD0084E2DE /* TiUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		24CA8B71111161FE0084E2DE /* TiUIWindowProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A22111161FD0084E2DE /* TiUIWindowProxy.m */; };
 		24CA8B72111161FE0084E2DE /* TiUIWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A24111161FD0084E2DE /* TiUIWindow.m */; };
 		24CA8B74111161FE0084E2DE /* TiUIWebViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A28111161FD0084E2DE /* TiUIWebViewProxy.m */; };

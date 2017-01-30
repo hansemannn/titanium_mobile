@@ -245,14 +245,12 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 
 +(NSString *)UTCDateForDate:(NSDate*)data
 {
-	NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
 	NSTimeZone *timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
 	[dateFormatter setTimeZone:timeZone];
 
 	NSLocale * USLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"];
 	[dateFormatter setLocale:USLocale];
-	[USLocale release];
-
 
 	//Example UTC full format: 2009-06-15T21:46:28.685+0000
 	[dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'.'SSS+0000"];
@@ -261,13 +259,12 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 
 +(NSDate *)dateForUTCDate:(NSString*)date
 {
-	NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
 	NSTimeZone* timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
 	[dateFormatter setTimeZone:timeZone];
 	
 	NSLocale* USLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"];
 	[dateFormatter setLocale:USLocale];
-	[USLocale release];
 	
 	[dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'.'SSS+0000"];
 	return [dateFormatter dateFromString:date];
@@ -281,9 +278,8 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 +(NSString*)createUUID
 {
 	CFUUIDRef resultID = CFUUIDCreate(NULL);
-	NSString * resultString = (NSString *) CFUUIDCreateString(NULL, resultID);
+	NSString * resultString = (NSString *) CFBridgingRelease(CFUUIDCreateString(NULL, resultID));
 	CFRelease(resultID);
-	return [resultString autorelease];
 }
 
 +(TiFile*)createTempFile:(NSString*)extension
@@ -293,13 +289,12 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 
 +(NSString *)encodeQueryPart:(NSString *)unencodedString
 {
-	NSString * result = (NSString *)CFURLCreateStringByAddingPercentEscapes(
-															   NULL,
-															   (CFStringRef)unencodedString,
-															   NULL,
-															   (CFStringRef)@"!*'();:@+$,/?%#[]=", 
-															   kCFStringEncodingUTF8 );
-	[result autorelease];
+    NSString * result = (NSString *)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(
+                                                                                              NULL,
+                                                                                              (CFStringRef)unencodedString,
+                                                                                              NULL,
+                                                                                              (CFStringRef)@"!*'();:@+$,/?%#[]=", 
+                                                                                              kCFStringEncodingUTF8 ));
 	return result;
 }
 
@@ -307,7 +302,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 {
 	// NOTE: we must encode each individual part for the to successfully work
 	
-	NSMutableString *result = [[[NSMutableString alloc]init] autorelease];
+	NSMutableString *result = [[NSMutableString alloc] init];
 	
 	NSArray *parts = [unencodedString componentsSeparatedByString:@"&"];
 	for (int c=0;c<[parts count];c++)
@@ -506,7 +501,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 		return obj;
 	}
 	
-	NSNumberFormatter *formatter = [[[NSNumberFormatter alloc] init] autorelease];
+    NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
 
 	return [formatter numberFromString:[self stringValue:obj]];
 }
@@ -562,7 +557,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
     if(color != nil) {
         [shadow setShadowColor:[[TiUtils colorValue:color] _color]];
     }
-    return [shadow autorelease];
+    return shadow;
 }
 
 +(int)intValue:(id)value def:(int)def valid:(BOOL *) isValid {
@@ -881,7 +876,7 @@ If the new path starts with / and the base url is app://..., we have to massage 
 
 
 */
-	if((relativeString == nil) || ((void*)relativeString == (void*)[NSNull null]))
+	if((relativeString == nil) || ((__bridge void*)relativeString == (__bridge void*)[NSNull null]))
 	{
 		return nil;
 	}
@@ -912,7 +907,7 @@ If the new path starts with / and the base url is app://..., we have to massage 
             CFStringRef escapedPath = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
                                                                               (CFStringRef)pathPortion, charactersToNotEscape,charactersThatNeedEscaping,
                                                                               kCFStringEncodingUTF8);
-            relativeString = [firstPortion stringByAppendingString:(NSString *)escapedPath];
+            relativeString = [firstPortion stringByAppendingString:(__bridge NSString *)escapedPath];
             if(escapedPath != NULL)
             {
                 CFRelease(escapedPath);
@@ -1114,14 +1109,13 @@ If the new path starts with / and the base url is app://..., we have to massage 
 		}
 		if ([value isKindOfClass:[NSString class]])
 		{
-			// need to retain here since we autorelease below and since colorName also autoreleases
-			result = [[TiColor colorNamed:value] retain]; 
+			result = [TiColor colorNamed:value];
 		}
 	}
 	if (result != nil)
 	{
 		if (exists != NULL) *exists = YES;
-		return [result autorelease];
+        return result;
 	}
 	
 	if (exists != NULL) *exists = NO;
@@ -1314,14 +1308,14 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	{
 		WebFont *font = [[WebFont alloc] init];
 		[font updateWithDict:value inherits:nil];
-		return [font autorelease];
+		return font;
 	}
 	if ([value isKindOfClass:[NSString class]])
 	{
 		WebFont *font = [[WebFont alloc] init];
 		font.family = value;
 		font.size = 14;
-		return [font autorelease];
+        return font;
 	}
 	return def;
 }
@@ -1345,9 +1339,9 @@ If the new path starts with / and the base url is app://..., we have to massage 
 		return value;
 	}
 	if ([value isKindOfClass:[NSDictionary class]]) {
-		return [[[TiScriptError alloc] initWithDictionary:value] autorelease];
+		return [[TiScriptError alloc] initWithDictionary:value];
 	}
-	return [[[TiScriptError alloc] initWithMessage:[value description] sourceURL:nil lineNo:0] autorelease];
+	return [[TiScriptError alloc] initWithMessage:[value description] sourceURL:nil lineNo:0];
 }
 
 +(NSTextAlignment)textAlignmentValue:(id)alignment
@@ -1932,7 +1926,6 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 		[encoded appendFormat:@"%02x",result[i]];
 	}
 	NSString* value = [encoded lowercaseString];
-	[encoded release];
 	return value;
 }
 
@@ -2050,7 +2043,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
         return nil;
     } else {
         NSString *str = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        return [str autorelease];
+        return str;
     }
 
 }
