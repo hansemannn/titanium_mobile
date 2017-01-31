@@ -278,8 +278,10 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 +(NSString*)createUUID
 {
 	CFUUIDRef resultID = CFUUIDCreate(NULL);
-	NSString * resultString = (NSString *) CFBridgingRelease(CFUUIDCreateString(NULL, resultID));
+	NSString *resultString = (__bridge_transfer NSString *) CFUUIDCreateString(NULL, resultID);
 	CFRelease(resultID);
+    
+	return resultString;
 }
 
 +(TiFile*)createTempFile:(NSString*)extension
