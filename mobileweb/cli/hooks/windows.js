@@ -19,7 +19,7 @@ const
 	os = require('os'),
 	path = require('path'),
 	spawn = require('child_process').spawn,
-	uuid = require('node-uuid'),
+	uuid = require('uuid'),
 	windowslib = require('windowslib'),
 	wrench = require('wrench'),
 	__ = appc.i18n(__dirname).__;

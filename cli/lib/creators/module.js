@@ -17,7 +17,7 @@ var appc = require('node-appc'),
 	path = require('path'),
 	ti = require('titanium-sdk'),
 	util = require('util'),
-	uuid = require('node-uuid'),
+	uuid = require('uuid'),
 	wrench = require('wrench'),
 	__ = appc.i18n(__dirname).__;
 
