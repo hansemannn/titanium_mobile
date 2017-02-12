@@ -11,8 +11,8 @@ description: |
 
 
 extends: Titanium.Proxy
-since: "3.2.0"
-platforms: [iphone, ipad]
+since: {iphone: "3.2.0", ipad: "3.2.0", android: "6.1.0"}
+platforms: [iphone, ipad, android]
 methods:
   - name: beginRefreshing
     summary: Tells the control that a refresh operation was started programmatically.
@@ -32,12 +32,14 @@ properties:
   - name: title
     summary: The attributed title of the control. 
     type: Titanium.UI.AttributedString
+    platforms: [iphone, ipad]
 
   - name: tintColor
     summary: The tint color for the refresh control, as a color name or hex triplet.
     description: |
         For information about color values, see the "Colors" section of <Titanium.UI>. 
     type: String
+    since: {iphone: "3.2.0", ipad: "3.2.0", android: "6.1.0"}
 
 events:
   - name: refreshstart
@@ -52,11 +54,12 @@ events:
     summary: | 
         Fired in response to a user finished action to refresh the contents of the 
         table view, list view or scroll view.
-    since: "6.0.0"
     properties:
       - name: bubbles
         summary: This is false. This event does not bubble
         type: Boolean
+    since: "6.0.0"
+    platforms: [iphone, ipad]
 examples:
   - title: Basic Pull To Refresh
     example: |

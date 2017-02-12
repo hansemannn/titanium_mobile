@@ -468,7 +468,19 @@ public class ListViewProxy extends TiViewProxy {
 	{
 		return (Boolean) getProperty(TiC.PROPERTY_CAN_SCROLL);
 	}
-	
+
+	@Kroll.method @Kroll.setProperty
+	public void setRefreshControl(Object refreshControl)
+	{
+		setProperty(TiC.PROPERTY_REFRESH_CONTROL, refreshControl);
+	}
+
+	@Kroll.method @Kroll.getProperty
+	public boolean getRefreshControl()
+	{
+		return getProperty(TiC.PROPERTY_REFRESH_CONTROL);
+	}
+
 	private ListSectionProxy[] handleSections()
 	{
 		TiUIView listView = peekView();

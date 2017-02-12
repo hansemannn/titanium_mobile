@@ -377,6 +377,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_PROPERTY_REFRESH_CONTROL = "refreshControl";
+
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_PROPERTY_REQUEST_CODE = "requestCode";
 
 	/**
