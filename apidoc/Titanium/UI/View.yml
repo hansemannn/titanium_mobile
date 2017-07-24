@@ -1234,20 +1234,17 @@ properties:
     default: Same as the normal background color of this view (Android, Mobile Web), black (iOS).
     type: String
 
-    
   - name: borderRadius
     summary: Radius for the rounded corners of the view's border.
     description: Each corner is rounded using an arc of a circle.
     type: Number
     default: 0
-
-    
+   
   - name: borderWidth
     summary: Border width of the view.
     type: Number
     default: 0
-
-    
+  
   - name: bottom
     summary: View's bottom position, in platform-specific units.
     description: |
@@ -1268,7 +1265,6 @@ properties:
     default: undefined
     type: Point
 
-    
   - name: children
     summary: Array of this view's child views.
     type: Array<Titanium.UI.View>
@@ -1502,6 +1498,13 @@ properties:
     default: Undefined. Results in a light grey background color on the wrapper view.
     since: "3.3.0"
     platforms: [iphone,ipad]
+    
+  - name: parent
+    summary: The parent view for this this (if attached).
+    since: "6.2.0"
+    type: Titanium.UI.View
+    permission: read-only
+    platforms: [iphone, ipad, android]
 
   - name: previewContext
     summary: The preview context used in the 3D-Touch feature "Peek and Pop".
