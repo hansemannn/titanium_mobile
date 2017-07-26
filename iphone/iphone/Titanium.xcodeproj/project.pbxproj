@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 48;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -217,7 +217,7 @@
 		24F5B146111FDFE8005C9199 /* ListenerEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = 24F5B145111FDFE8005C9199 /* ListenerEntry.m */; };
 		24F6204F1199F1F400EEAD3C /* TopTiModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 24F6204E1199F1F400EEAD3C /* TopTiModule.m */; };
 		24F620541199F26500EEAD3C /* TiApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 24F620531199F26500EEAD3C /* TiApp.m */; };
-		24F6205A1199F27700EEAD3C /* TiErrorController.m in Sources */ = {isa = PBXBuildFile; fileRef = 24F620571199F27700EEAD3C /* TiErrorController.m */; };
+		24F6205A1199F27700EEAD3C /* TiErrorController.m in Sources */ = {isa = PBXBuildFile; fileRef = 24F620571199F27700EEAD3C /* TiErrorController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		24FB4EF4115C81C5001AAF99 /* TiUIiPadPopoverProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24FB4EEE115C81C5001AAF99 /* TiUIiPadPopoverProxy.m */; };
 		24FB4F42115C8C4E001AAF99 /* TiUIiPadProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24FB4F41115C8C4E001AAF99 /* TiUIiPadProxy.m */; };
 		24FBE58311293D06005C8D48 /* TiMediaAudioRecorderProxy.mm in Sources */ = {isa = PBXBuildFile; fileRef = 24FBE58211293D06005C8D48 /* TiMediaAudioRecorderProxy.mm */; };
