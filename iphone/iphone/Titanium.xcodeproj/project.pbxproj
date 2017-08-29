@@ -342,6 +342,7 @@
 		DADE76D413D65C590079FC75 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADE76D313D65C590079FC75 /* libicucore.dylib */; };
 		DAE541E313577BEC00A65123 /* TiDataStream.m in Sources */ = {isa = PBXBuildFile; fileRef = DAE541E213577BEC00A65123 /* TiDataStream.m */; };
 		DB0D54951F3B4A3D00E2B771 /* TiUIToolbarProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0D54941F3B4A3D00E2B771 /* TiUIToolbarProxy.m */; };
+		DB6C57281F55729100536FEB /* TiUIiOSDragInteractionProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB6C57271F55729100536FEB /* TiUIiOSDragInteractionProxy.m */; };
 		DB90749F1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB90749E1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m */; };
 		EF0ADCFA143F9ABF00977386 /* NSData+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0ADCF9143F9ABF00977386 /* NSData+Additions.m */; };
 		EF0ADD1A143FA0CD00977386 /* GeolocationModule.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0ADD19143FA0CD00977386 /* GeolocationModule.m */; };
@@ -1030,6 +1031,8 @@
 		DAE541E213577BEC00A65123 /* TiDataStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiDataStream.m; sourceTree = "<group>"; };
 		DB0D54931F3B4A3D00E2B771 /* TiUIToolbarProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIToolbarProxy.h; sourceTree = "<group>"; };
 		DB0D54941F3B4A3D00E2B771 /* TiUIToolbarProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIToolbarProxy.m; sourceTree = "<group>"; };
+		DB6C57261F55729100536FEB /* TiUIiOSDragInteractionProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TiUIiOSDragInteractionProxy.h; sourceTree = "<group>"; };
+		DB6C57271F55729100536FEB /* TiUIiOSDragInteractionProxy.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSDragInteractionProxy.m; sourceTree = "<group>"; };
 		DB90749D1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSFeedbackGeneratorProxy.h; sourceTree = "<group>"; };
 		DB90749E1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSFeedbackGeneratorProxy.m; sourceTree = "<group>"; };
 		EF0ADCF9143F9ABF00977386 /* NSData+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSData+Additions.m"; path = "../Classes/NSData+Additions.m"; sourceTree = "<group>"; };
@@ -1958,6 +1961,7 @@
 		24D06FDE11D020E600F615D8 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				DB6C57221F55717000536FEB /* Drag and Drop */,
 				0BF933871CA0929A0091C7EC /* Stepper */,
 				3A811CCD1C2C21CA0023468C /* BlurView */,
 				3A0B56721C0CD7FE00709DA4 /* LivePhotoView */,
@@ -2538,6 +2542,15 @@
 			name = Toolbar;
 			sourceTree = "<group>";
 		};
+		DB6C57221F55717000536FEB /* Drag and Drop */ = {
+			isa = PBXGroup;
+			children = (
+				DB6C57261F55729100536FEB /* TiUIiOSDragInteractionProxy.h */,
+				DB6C57271F55729100536FEB /* TiUIiOSDragInteractionProxy.m */,
+			);
+			name = "Drag and Drop";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -2889,6 +2902,7 @@
 				84A00FF017FB39A100D4BF94 /* TiAnimatorProxy.m in Sources */,
 				DA2B35C2134514FE00056705 /* TiNetworkSocketTCPProxy.m in Sources */,
 				DABF3ECF134D210400836137 /* TiBuffer.m in Sources */,
+				DB6C57281F55729100536FEB /* TiUIiOSDragInteractionProxy.m in Sources */,
 				DABF3ED7134D2CA100836137 /* StreamModule.m in Sources */,
 				DABF3EDC134D2E4400836137 /* TiStreamProxy.m in Sources */,
 				15CB44131C4ED51B00D81480 /* TiUIiOSSystemButtonStyleProxy.m in Sources */,
@@ -2957,6 +2971,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = NO;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = "";
@@ -2993,6 +3008,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = NO;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				DEVELOPMENT_TEAM = "";

@@ -16,6 +16,9 @@
 #import "TiStylesheet.h"
 #import "TiUIView.h"
 #import "TiUIiOSPreviewContextProxy.h"
+#if __IPHONE_11_0
+#import "TiUIiOSDragInteractionProxy.h"
+#endif
 #import "TiWindowProxy.h"
 #import <QuartzCore/QuartzCore.h>
 #import <libkern/OSAtomic.h>
@@ -1302,6 +1305,32 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap, horizontalWrap, horizontalWrap, [self will
 {
   return windowOpened;
 }
+
+#if __IPHONE_11_0
+- (void)addDragAndDropInteraction:(id)dragAndDropInteraction
+{
+  ENSURE_SINGLE_ARG(dragAndDropInteraction, TiUIiOSDragInteractionProxy);
+  
+  if (![TiUtils isIOSVersionOrGreater:@"11.0"]) {
+    NSLog(@"[ERROR] Drag and Drop is only available on iOS 11 and later!");
+    return;
+  }
+  
+  [[self view] addInteraction:dragAndDropInteraction];
+}
+
+- (void)removeDragAndDropInteraction:(id)dragAndDropInteraction
+{
+  ENSURE_SINGLE_ARG(dragAndDropInteraction, TiUIiOSDragInteractionProxy);
+  
+  if (![TiUtils isIOSVersionOrGreater:@"11.0"]) {
+    NSLog(@"[ERROR] Drag and Drop is only available on iOS 11 and later!");
+    return;
+  }
+  
+  [[self view] removeInteraction:dragAndDropInteraction];
+}
+#endif
 
 - (void)setPreviewContext:(id)context
 {
