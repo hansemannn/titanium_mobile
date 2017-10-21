@@ -54,6 +54,13 @@
 }
 
 // Handle all properties automatically
+#if defined (USE_TI_MEDIAOPENMUSICLIBRARY) || \
+    defined(USE_TI_MEDIAQUERYMUSICLIBRARY) || \
+    defined(USE_TI_MEDIAMUSICPLAYER) || \
+    defined(USE_TI_MEDIASYSTEMMUSICPLAYER) || \
+    defined(USE_TI_MEDIAAPPMUSICPLAYER) || \
+    defined(USE_TI_MEDIAGETSYSTEMMUSICPLAYER) || \
+    defined(USE_TI_MEDIAGETAPPMUSICPLAYER)
 - (id)valueForUndefinedKey:(NSString *)key
 {
 	id propertyName = [[MediaModule itemProperties] objectForKey:key];
@@ -65,6 +72,7 @@
 	}
 	return [item valueForProperty:propertyName];
 }
+#endif
 
 @end
 

@@ -53,8 +53,16 @@ enum
 };
 
 // Have to distinguish between filterable and nonfilterable properties
+#if defined (USE_TI_MEDIAOPENMUSICLIBRARY) || \
+    defined(USE_TI_MEDIAQUERYMUSICLIBRARY) || \
+    defined(USE_TI_MEDIAMUSICPLAYER) || \
+    defined(USE_TI_MEDIASYSTEMMUSICPLAYER) || \
+    defined(USE_TI_MEDIAAPPMUSICPLAYER) || \
+    defined(USE_TI_MEDIAGETSYSTEMMUSICPLAYER) || \
+    defined(USE_TI_MEDIAGETAPPMUSICPLAYER)
 static NSDictionary* TI_itemProperties;
 static NSDictionary* TI_filterableItemProperties;
+#endif
 
 #pragma mark - Backwards compatibility for pre-iOS 7.0
 
@@ -130,6 +138,13 @@ typedef void (^PermissionBlock)(BOOL granted)
 
 #pragma mark Static Properties
 
+#if defined (USE_TI_MEDIAOPENMUSICLIBRARY) || \
+    defined(USE_TI_MEDIAQUERYMUSICLIBRARY) || \
+    defined(USE_TI_MEDIAMUSICPLAYER) || \
+    defined(USE_TI_MEDIASYSTEMMUSICPLAYER) || \
+    defined(USE_TI_MEDIAAPPMUSICPLAYER) || \
+    defined(USE_TI_MEDIAGETSYSTEMMUSICPLAYER) || \
+    defined(USE_TI_MEDIAGETAPPMUSICPLAYER)
 +(NSDictionary*)filterableItemProperties
 {
     if (TI_filterableItemProperties == nil) {
@@ -185,8 +200,10 @@ typedef void (^PermissionBlock)(BOOL granted)
 	}
 	return TI_itemProperties;
 }
+#endif
 
 #pragma mark Public Properties
+
 -(NSString*)apiName
 {
     return @"Ti.Media";
@@ -226,7 +243,13 @@ MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(CAMERA_AUTHORIZATION_NOT_DETERMINED, AVAuth
 MAKE_SYSTEM_UINT(CAMERA_AUTHORIZATION_UNKNOWN, AVAuthorizationStatusNotDetermined);
 #endif
 
-//Constants for currentRoute
+#if defined(USE_TI_MEDIA) && (\
+    defined(USE_TI_MEDIAAUDIOPLAYER) || \
+    defined(USE_TI_MEDIAVIDEOPLAYER) || \
+    defined(USE_TI_MEDIASOUND) || \
+    defined(USE_TI_MEDIAAUDIORECORDER))
+
+// Constants for currentRoute
 MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_LINEIN,AVAudioSessionPortLineIn)
 MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BUILTINMIC,AVAudioSessionPortBuiltInMic)
 MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_HEADSETMIC,AVAudioSessionPortHeadsetMic)
@@ -251,6 +274,8 @@ MAKE_SYSTEM_STR(AUDIO_SESSION_CATEGORY_PLAY_AND_RECORD, AVAudioSessionCategoryPl
 
 MAKE_SYSTEM_UINT(AUDIO_SESSION_OVERRIDE_ROUTE_NONE, AVAudioSessionPortOverrideNone);
 MAKE_SYSTEM_UINT(AUDIO_SESSION_OVERRIDE_ROUTE_SPEAKER, AVAudioSessionPortOverrideSpeaker);
+
+#endif
 
 //Constants for Camera
 #if defined(USE_TI_MEDIACAMERA_FRONT) || defined(USE_TI_MEDIACAMERA_REAR) || defined(USE_TI_MEDIACAMERA_FLASH_OFF) || defined(USE_TI_MEDIACAMERA_FLASH_AUTO) || defined(USE_TI_MEDIACAMERA_FLASH_ON)
@@ -454,6 +479,12 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     
 }
 
+#if defined(USE_TI_MEDIA) && (\
+    defined(USE_TI_MEDIAAUDIOPLAYER) || \
+    defined(USE_TI_MEDIAVIDEOPLAYER) || \
+    defined(USE_TI_MEDIASOUND) || \
+    defined(USE_TI_MEDIAAUDIORECORDER))
+
 -(void)setAudioSessionCategory:(NSString*)mode
 {
     [[TiMediaAudioSession sharedSession] setSessionMode:mode];
@@ -463,6 +494,74 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 {
     return [[TiMediaAudioSession sharedSession] sessionMode];
 }
+
+-(NSNumber*)canRecord
+{
+  return NUMBOOL([[TiMediaAudioSession sharedSession] hasInput]);
+}
+
+-(NSNumber*)volume
+{
+  return NUMFLOAT([[TiMediaAudioSession sharedSession] volume]);
+}
+
+-(NSNumber*)audioPlaying
+{
+  return NUMBOOL([[TiMediaAudioSession sharedSession] isAudioPlaying]);
+}
+
+-(NSDictionary*)currentRoute
+{
+  return [[TiMediaAudioSession sharedSession] currentRoute];
+}
+
+-(void)setOverrideAudioRoute:(NSNumber*)mode
+{
+  [[TiMediaAudioSession sharedSession] setRouteOverride:[mode unsignedIntValue]];
+}
+
+
+-(void)_listenerAdded:(NSString *)type count:(int)count
+{
+  if (count == 1 && [type isEqualToString:@"routechange"])
+  {
+    WARN_IF_BACKGROUND_THREAD_OBJ;  //NSNotificationCenter is not threadsafe
+    [[TiMediaAudioSession sharedSession] startAudioSession]; // Have to start a session to get a listener
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChanged:) name:kTiMediaAudioSessionRouteChange object:[TiMediaAudioSession sharedSession]];
+  }
+  else if (count == 1 && [type isEqualToString:@"volume"])
+  {
+    WARN_IF_BACKGROUND_THREAD_OBJ;  //NSNotificationCenter is not threadsafe!
+    [[TiMediaAudioSession sharedSession] startAudioSession]; // Have to start a session to get a listener
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioVolumeChanged:) name:kTiMediaAudioSessionVolumeChange object:[TiMediaAudioSession sharedSession]];
+  }
+  else if (count == 1 && [type isEqualToString:@"recordinginput"])
+  {
+    DebugLog(@"[WARN] This event is no longer supported by the MediaModule. Check the inputs property fo the currentRoute property to check if an input line is available");
+  }
+  else if (count == 1 && [type isEqualToString:@"linechange"])
+  {
+    DebugLog(@"[WARN] This event is no longer supported by the MediaModule. Listen for the routechange event instead");
+  }
+}
+
+-(void)_listenerRemoved:(NSString *)type count:(int)count
+{
+  if (count == 0 && [type isEqualToString:@"routechange"])
+  {
+    WARN_IF_BACKGROUND_THREAD_OBJ;  //NSNotificationCenter is not threadsafe!
+    [[TiMediaAudioSession sharedSession] stopAudioSession];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:kTiMediaAudioSessionRouteChange object:[TiMediaAudioSession sharedSession]];
+  }
+  else if (count == 0 && [type isEqualToString:@"volume"])
+  {
+    WARN_IF_BACKGROUND_THREAD_OBJ;  //NSNotificationCenter is not threadsafe!
+    [[TiMediaAudioSession sharedSession] stopAudioSession];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:kTiMediaAudioSessionVolumeChange object:[TiMediaAudioSession sharedSession]];
+  }
+}
+
+#endif
 
 #if defined(USE_TI_MEDIAAVAILABLECAMERAMEDIATYPES) || defined(USE_TI_MEDIAISMEDIATYPESUPPORTED)
 -(NSArray*)availableCameraMediaTypes
@@ -527,11 +626,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 }
 #endif
 
--(NSNumber*)canRecord
-{
-    return NUMBOOL([[TiMediaAudioSession sharedSession] hasInput]);
-}
-
 #ifdef USE_TI_MEDIAISCAMERASUPPORTED
 -(NSNumber*)isCameraSupported
 {
@@ -555,21 +649,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 }
 #endif
 
--(NSNumber*)volume
-{
-    return NUMFLOAT([[TiMediaAudioSession sharedSession] volume]);
-}
-
--(NSNumber*)audioPlaying
-{
-    return NUMBOOL([[TiMediaAudioSession sharedSession] isAudioPlaying]);
-}
-
--(NSDictionary*)currentRoute
-{
-    return [[TiMediaAudioSession sharedSession] currentRoute];
-}
-
 #pragma mark Public Methods
 
 -(void)beep:(id)unused
@@ -582,11 +661,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 {
     //No pattern support on iOS
     [self beep:nil];
-}
-
--(void)setOverrideAudioRoute:(NSNumber*)mode
-{
-    [[TiMediaAudioSession sharedSession] setRouteOverride:[mode unsignedIntValue]];
 }
 
 /**
@@ -647,6 +721,13 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 }
 #endif
 
+#if defined(USE_TI_MEDIASTARTMICROPHONEMONITOR) ||  \
+    defined(USE_TI_MEDIASTOPMICROPHONEMONITOR) ||  \
+    defined(USE_TI_MEDIAPEAKMICROPHONEPOWER) ||     \
+    defined(USE_TI_MEDIAGETPEAKMICROPHONEPOWER) ||  \
+    defined(USE_TI_MEDIAAVERAGEMICROPHONEPOWER) ||  \
+    defined(USE_TI_MEDIAGETAVERAGEMICROPHONEPOWER)
+
 -(void)startMicrophoneMonitor:(id)args
 {
     [[SCListener sharedListener] listen];
@@ -674,6 +755,8 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     }
     return NUMFLOAT(-1);
 }
+
+#endif
 
 /**
  End Microphone and Recording Support
@@ -2175,46 +2258,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         NSMutableDictionary *event = [NSMutableDictionary dictionary];
         [event setObject:[self volume] forKey:@"volume"];
         [self fireEvent:@"volume" withObject:event];
-    }
-}
-
--(void)_listenerAdded:(NSString *)type count:(int)count
-{
-    if (count == 1 && [type isEqualToString:@"routechange"])
-    {
-        WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe
-        [[TiMediaAudioSession sharedSession] startAudioSession]; // Have to start a session to get a listener
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChanged:) name:kTiMediaAudioSessionRouteChange object:[TiMediaAudioSession sharedSession]];
-    }
-    else if (count == 1 && [type isEqualToString:@"volume"])
-    {
-        WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-        [[TiMediaAudioSession sharedSession] startAudioSession]; // Have to start a session to get a listener
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioVolumeChanged:) name:kTiMediaAudioSessionVolumeChange object:[TiMediaAudioSession sharedSession]];
-    }
-    else if (count == 1 && [type isEqualToString:@"recordinginput"])
-    {
-        DebugLog(@"[WARN] This event is no longer supported by the MediaModule. Check the inputs property fo the currentRoute property to check if an input line is available");
-    }
-    else if (count == 1 && [type isEqualToString:@"linechange"])
-    {
-        DebugLog(@"[WARN] This event is no longer supported by the MediaModule. Listen for the routechange event instead");
-    }
-}
-
--(void)_listenerRemoved:(NSString *)type count:(int)count
-{
-    if (count == 0 && [type isEqualToString:@"routechange"])
-    {
-        WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-        [[TiMediaAudioSession sharedSession] stopAudioSession];
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:kTiMediaAudioSessionRouteChange object:[TiMediaAudioSession sharedSession]];
-    }
-    else if (count == 0 && [type isEqualToString:@"volume"])
-    {
-        WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-        [[TiMediaAudioSession sharedSession] stopAudioSession];
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:kTiMediaAudioSessionVolumeChange object:[TiMediaAudioSession sharedSession]];
     }
 }
 
