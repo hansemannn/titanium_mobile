@@ -53,8 +53,10 @@ enum
 };
 
 // Have to distinguish between filterable and nonfilterable properties
-static NSDictionary* TI_itemProperties;
-static NSDictionary* TI_filterableItemProperties;
+#if defined(USE_TI_MEDIAOPENMUSICLIBRARY) || defined(USE_TI_MEDIAQUERYMUSICLIBRARY) || defined(USE_TI_MEDIAMUSICPLAYER) || defined(USE_TI_MEDIASYSTEMMUSICPLAYER) || defined(USE_TI_MEDIAAPPMUSICPLAYER) || defined(USE_TI_MEDIAGETSYSTEMMUSICPLAYER) || defined(USE_TI_MEDIAGETAPPMUSICPLAYER)
+static NSDictionary *TI_itemProperties;
+static NSDictionary *TI_filterableItemProperties;
+#endif
 
 #pragma mark - Backwards compatibility for pre-iOS 7.0
 
@@ -130,30 +132,31 @@ typedef void (^PermissionBlock)(BOOL granted)
 
 #pragma mark Static Properties
 
-+(NSDictionary*)filterableItemProperties
+#if defined(USE_TI_MEDIAOPENMUSICLIBRARY) || defined(USE_TI_MEDIAQUERYMUSICLIBRARY) || defined(USE_TI_MEDIAMUSICPLAYER) || defined(USE_TI_MEDIASYSTEMMUSICPLAYER) || defined(USE_TI_MEDIAAPPMUSICPLAYER) || defined(USE_TI_MEDIAGETSYSTEMMUSICPLAYER) || defined(USE_TI_MEDIAGETAPPMUSICPLAYER)
++ (NSDictionary *)filterableItemProperties
 {
-    if (TI_filterableItemProperties == nil) {
-        TI_filterableItemProperties = [[NSDictionary alloc] initWithObjectsAndKeys:MPMediaItemPropertyMediaType, @"mediaType",
-                                                                                   MPMediaItemPropertyTitle, @"title",
-                                                                                   MPMediaItemPropertyAlbumTitle, @"albumTitle",
-                                                                                   MPMediaItemPropertyArtist, @"artist",
-                                                                                   MPMediaItemPropertyAlbumArtist, @"albumArtist",
-                                                                                   MPMediaItemPropertyGenre, @"genre",
-                                                                                   MPMediaItemPropertyComposer, @"composer",
-                                                                                   MPMediaItemPropertyIsCompilation, @"isCompilation",
-                                                                                   MPMediaItemPropertyPlayCount, @"playCount",
-                                                                                   MPMediaItemPropertyPersistentID, @"persistentID",
-                                                                                   MPMediaItemPropertyAlbumPersistentID, @"albumPersistentID",
-                                                                                   MPMediaItemPropertyAlbumArtistPersistentID, @"albumArtistPersistentID",
-                                                                                   MPMediaItemPropertyGenrePersistentID, @"genrePersistentID",
-                                                                                   MPMediaItemPropertyComposerPersistentID, @"composerPersistentID",
-                                                                                   MPMediaItemPropertyIsCloudItem, @"isCloudItem",
-                                       [TiUtils isIOSVersionOrGreater:@"9.2"] ? MPMediaItemPropertyHasProtectedAsset : NO, @"hasProtectedAsset",
-                                                                                   MPMediaItemPropertyPodcastTitle, @"podcastTitle",
-                                                                                   MPMediaItemPropertyPodcastPersistentID, @"podcastPersistentID",
-                                                                                   nil];
-    }
-    return TI_filterableItemProperties;
+  if (TI_filterableItemProperties == nil) {
+    TI_filterableItemProperties = [[NSDictionary alloc] initWithObjectsAndKeys:MPMediaItemPropertyMediaType, @"mediaType",
+                                                        MPMediaItemPropertyTitle, @"title",
+                                                        MPMediaItemPropertyAlbumTitle, @"albumTitle",
+                                                        MPMediaItemPropertyArtist, @"artist",
+                                                        MPMediaItemPropertyAlbumArtist, @"albumArtist",
+                                                        MPMediaItemPropertyGenre, @"genre",
+                                                        MPMediaItemPropertyComposer, @"composer",
+                                                        MPMediaItemPropertyIsCompilation, @"isCompilation",
+                                                        MPMediaItemPropertyPlayCount, @"playCount",
+                                                        MPMediaItemPropertyPersistentID, @"persistentID",
+                                                        MPMediaItemPropertyAlbumPersistentID, @"albumPersistentID",
+                                                        MPMediaItemPropertyAlbumArtistPersistentID, @"albumArtistPersistentID",
+                                                        MPMediaItemPropertyGenrePersistentID, @"genrePersistentID",
+                                                        MPMediaItemPropertyComposerPersistentID, @"composerPersistentID",
+                                                        MPMediaItemPropertyIsCloudItem, @"isCloudItem",
+                                                        [TiUtils isIOSVersionOrGreater:@"9.2"] ? MPMediaItemPropertyHasProtectedAsset : NO, @"hasProtectedAsset",
+                                                        MPMediaItemPropertyPodcastTitle, @"podcastTitle",
+                                                        MPMediaItemPropertyPodcastPersistentID, @"podcastPersistentID",
+                                                        nil];
+  }
+  return TI_filterableItemProperties;
 }
 
 +(NSDictionary*)itemProperties
@@ -185,9 +188,11 @@ typedef void (^PermissionBlock)(BOOL granted)
 	}
 	return TI_itemProperties;
 }
+#endif
 
 #pragma mark Public Properties
--(NSString*)apiName
+
+- (NSString *)apiName
 {
     return @"Ti.Media";
 }
@@ -226,21 +231,23 @@ MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(CAMERA_AUTHORIZATION_NOT_DETERMINED, AVAuth
 MAKE_SYSTEM_UINT(CAMERA_AUTHORIZATION_UNKNOWN, AVAuthorizationStatusNotDetermined);
 #endif
 
-//Constants for currentRoute
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_LINEIN,AVAudioSessionPortLineIn)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BUILTINMIC,AVAudioSessionPortBuiltInMic)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_HEADSETMIC,AVAudioSessionPortHeadsetMic)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_LINEOUT,AVAudioSessionPortLineOut)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_HEADPHONES,AVAudioSessionPortHeadphones)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BLUETOOTHA2DP,AVAudioSessionPortBluetoothA2DP)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BUILTINRECEIVER,AVAudioSessionPortBuiltInReceiver)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BUILTINSPEAKER,AVAudioSessionPortBuiltInSpeaker)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_HDMI,AVAudioSessionPortHDMI)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_AIRPLAY,AVAudioSessionPortAirPlay)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BLUETOOTHHFP,AVAudioSessionPortBluetoothHFP)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_USBAUDIO,AVAudioSessionPortUSBAudio)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BLUETOOTHLE,AVAudioSessionPortBluetoothLE)
-MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_CARAUDIO,AVAudioSessionPortCarAudio)
+#if defined(USE_TI_MEDIA) && (defined(USE_TI_MEDIAAUDIOPLAYER) || defined(USE_TI_MEDIAVIDEOPLAYER) || defined(USE_TI_MEDIASOUND) || defined(USE_TI_MEDIAAUDIORECORDER))
+
+// Constants for currentRoute
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_LINEIN, AVAudioSessionPortLineIn)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BUILTINMIC, AVAudioSessionPortBuiltInMic)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_HEADSETMIC, AVAudioSessionPortHeadsetMic)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_LINEOUT, AVAudioSessionPortLineOut)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_HEADPHONES, AVAudioSessionPortHeadphones)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BLUETOOTHA2DP, AVAudioSessionPortBluetoothA2DP)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BUILTINRECEIVER, AVAudioSessionPortBuiltInReceiver)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BUILTINSPEAKER, AVAudioSessionPortBuiltInSpeaker)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_HDMI, AVAudioSessionPortHDMI)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_AIRPLAY, AVAudioSessionPortAirPlay)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BLUETOOTHHFP, AVAudioSessionPortBluetoothHFP)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_USBAUDIO, AVAudioSessionPortUSBAudio)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_BLUETOOTHLE, AVAudioSessionPortBluetoothLE)
+MAKE_SYSTEM_STR(AUDIO_SESSION_PORT_CARAUDIO, AVAudioSessionPortCarAudio)
 
 //Constants for AudioSessions
 MAKE_SYSTEM_STR(AUDIO_SESSION_CATEGORY_AMBIENT,AVAudioSessionCategoryAmbient);
@@ -251,6 +258,8 @@ MAKE_SYSTEM_STR(AUDIO_SESSION_CATEGORY_PLAY_AND_RECORD, AVAudioSessionCategoryPl
 
 MAKE_SYSTEM_UINT(AUDIO_SESSION_OVERRIDE_ROUTE_NONE, AVAudioSessionPortOverrideNone);
 MAKE_SYSTEM_UINT(AUDIO_SESSION_OVERRIDE_ROUTE_SPEAKER, AVAudioSessionPortOverrideSpeaker);
+
+#endif
 
 //Constants for Camera
 #if defined(USE_TI_MEDIACAMERA_FRONT) || defined(USE_TI_MEDIACAMERA_REAR) || defined(USE_TI_MEDIACAMERA_FLASH_OFF) || defined(USE_TI_MEDIACAMERA_FLASH_AUTO) || defined(USE_TI_MEDIACAMERA_FLASH_ON)
@@ -454,7 +463,9 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     
 }
 
--(void)setAudioSessionCategory:(NSString*)mode
+#if defined(USE_TI_MEDIA) && (defined(USE_TI_MEDIAAUDIOPLAYER) || defined(USE_TI_MEDIAVIDEOPLAYER) || defined(USE_TI_MEDIASOUND) || defined(USE_TI_MEDIAAUDIORECORDER))
+
+- (void)setAudioSessionCategory:(NSString *)mode
 {
     [[TiMediaAudioSession sharedSession] setSessionMode:mode];
 }
@@ -463,6 +474,63 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 {
     return [[TiMediaAudioSession sharedSession] sessionMode];
 }
+
+- (NSNumber *)canRecord
+{
+  return NUMBOOL([[TiMediaAudioSession sharedSession] hasInput]);
+}
+
+- (NSNumber *)volume
+{
+  return NUMFLOAT([[TiMediaAudioSession sharedSession] volume]);
+}
+
+- (NSNumber *)audioPlaying
+{
+  return NUMBOOL([[TiMediaAudioSession sharedSession] isAudioPlaying]);
+}
+
+- (NSDictionary *)currentRoute
+{
+  return [[TiMediaAudioSession sharedSession] currentRoute];
+}
+
+- (void)setOverrideAudioRoute:(NSNumber *)mode
+{
+  [[TiMediaAudioSession sharedSession] setRouteOverride:[mode unsignedIntValue]];
+}
+
+- (void)_listenerAdded:(NSString *)type count:(int)count
+{
+  if (count == 1 && [type isEqualToString:@"routechange"]) {
+    WARN_IF_BACKGROUND_THREAD_OBJ; //NSNotificationCenter is not threadsafe
+    [[TiMediaAudioSession sharedSession] startAudioSession]; // Have to start a session to get a listener
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChanged:) name:kTiMediaAudioSessionRouteChange object:[TiMediaAudioSession sharedSession]];
+  } else if (count == 1 && [type isEqualToString:@"volume"]) {
+    WARN_IF_BACKGROUND_THREAD_OBJ; //NSNotificationCenter is not threadsafe!
+    [[TiMediaAudioSession sharedSession] startAudioSession]; // Have to start a session to get a listener
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioVolumeChanged:) name:kTiMediaAudioSessionVolumeChange object:[TiMediaAudioSession sharedSession]];
+  } else if (count == 1 && [type isEqualToString:@"recordinginput"]) {
+    DebugLog(@"[WARN] This event is no longer supported by the MediaModule. Check the inputs property fo the currentRoute property to check if an input line is available");
+  } else if (count == 1 && [type isEqualToString:@"linechange"]) {
+    DebugLog(@"[WARN] This event is no longer supported by the MediaModule. Listen for the routechange event instead");
+  }
+}
+
+- (void)_listenerRemoved:(NSString *)type count:(int)count
+{
+  if (count == 0 && [type isEqualToString:@"routechange"]) {
+    WARN_IF_BACKGROUND_THREAD_OBJ; //NSNotificationCenter is not threadsafe!
+    [[TiMediaAudioSession sharedSession] stopAudioSession];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:kTiMediaAudioSessionRouteChange object:[TiMediaAudioSession sharedSession]];
+  } else if (count == 0 && [type isEqualToString:@"volume"]) {
+    WARN_IF_BACKGROUND_THREAD_OBJ; //NSNotificationCenter is not threadsafe!
+    [[TiMediaAudioSession sharedSession] stopAudioSession];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:kTiMediaAudioSessionVolumeChange object:[TiMediaAudioSession sharedSession]];
+  }
+}
+
+#endif
 
 #if defined(USE_TI_MEDIAAVAILABLECAMERAMEDIATYPES) || defined(USE_TI_MEDIAISMEDIATYPESUPPORTED)
 -(NSArray*)availableCameraMediaTypes
@@ -527,11 +595,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 }
 #endif
 
--(NSNumber*)canRecord
-{
-    return NUMBOOL([[TiMediaAudioSession sharedSession] hasInput]);
-}
-
 #ifdef USE_TI_MEDIAISCAMERASUPPORTED
 -(NSNumber*)isCameraSupported
 {
@@ -555,21 +618,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 }
 #endif
 
--(NSNumber*)volume
-{
-    return NUMFLOAT([[TiMediaAudioSession sharedSession] volume]);
-}
-
--(NSNumber*)audioPlaying
-{
-    return NUMBOOL([[TiMediaAudioSession sharedSession] isAudioPlaying]);
-}
-
--(NSDictionary*)currentRoute
-{
-    return [[TiMediaAudioSession sharedSession] currentRoute];
-}
-
 #pragma mark Public Methods
 
 -(void)beep:(id)unused
@@ -582,11 +630,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 {
     //No pattern support on iOS
     [self beep:nil];
-}
-
--(void)setOverrideAudioRoute:(NSNumber*)mode
-{
-    [[TiMediaAudioSession sharedSession] setRouteOverride:[mode unsignedIntValue]];
 }
 
 /**
@@ -647,7 +690,9 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 }
 #endif
 
--(void)startMicrophoneMonitor:(id)args
+#if defined(USE_TI_MEDIASTARTMICROPHONEMONITOR) || defined(USE_TI_MEDIASTOPMICROPHONEMONITOR) || defined(USE_TI_MEDIAPEAKMICROPHONEPOWER) || defined(USE_TI_MEDIAGETPEAKMICROPHONEPOWER) || defined(USE_TI_MEDIAAVERAGEMICROPHONEPOWER) || defined(USE_TI_MEDIAGETAVERAGEMICROPHONEPOWER)
+
+- (void)startMicrophoneMonitor:(id)args
 {
     [[SCListener sharedListener] listen];
 }
@@ -674,6 +719,8 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
     }
     return NUMFLOAT(-1);
 }
+
+#endif
 
 /**
  End Microphone and Recording Support
@@ -769,107 +816,95 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 #ifdef USE_TI_MEDIASAVETOPHOTOGALLERY
 -(void)saveToPhotoGallery:(id)arg
 {
-    ENSURE_UI_THREAD(saveToPhotoGallery,arg);
-    NSObject* image = [arg objectAtIndex:0];
-    ENSURE_TYPE(image, NSObject);
-    
-    NSDictionary* saveCallbacks=nil;
-    if ([arg count] > 1) {
-        saveCallbacks = [arg objectAtIndex:1];
-        ENSURE_TYPE(saveCallbacks, NSDictionary);
-        KrollCallback* successCallback = [saveCallbacks valueForKey:@"success"];
-        ENSURE_TYPE_OR_NIL(successCallback, KrollCallback);
-        KrollCallback* errorCallback = [saveCallbacks valueForKey:@"error"];
-        ENSURE_TYPE_OR_NIL(errorCallback, KrollCallback);
+  ENSURE_UI_THREAD(saveToPhotoGallery, arg);
+  NSObject *image = [arg objectAtIndex:0];
+  ENSURE_TYPE(image, NSObject);
+
+  NSDictionary *saveCallbacks = nil;
+  if ([arg count] > 1) {
+    saveCallbacks = [arg objectAtIndex:1];
+    ENSURE_TYPE(saveCallbacks, NSDictionary);
+    KrollCallback *successCallback = [saveCallbacks valueForKey:@"success"];
+    ENSURE_TYPE_OR_NIL(successCallback, KrollCallback);
+    KrollCallback *errorCallback = [saveCallbacks valueForKey:@"error"];
+    ENSURE_TYPE_OR_NIL(errorCallback, KrollCallback);
+  }
+
+  if ([image isKindOfClass:[TiBlob class]]) {
+    TiBlob *blob = (TiBlob *)image;
+    NSString *mime = [blob mimeType];
+
+    if (mime == nil || [mime hasPrefix:@"image/"]) {
+      UIImage *savedImage = [blob image];
+      if (savedImage == nil)
+        return;
+      UIImageWriteToSavedPhotosAlbum(savedImage, self, @selector(saveCompletedForImage:error:contextInfo:), [saveCallbacks retain]);
+    } else if ([mime hasPrefix:@"video/"]) {
+      NSString *filePath;
+      switch ([blob type]) {
+      case TiBlobTypeFile: {
+        filePath = [blob path];
+        break;
+      }
+      case TiBlobTypeData: {
+        // In this case, we need to write the blob data to a /tmp file and then load it.
+        NSArray *typeinfo = [mime componentsSeparatedByString:@"/"];
+        TiFile *tempFile = [TiUtils createTempFile:[typeinfo objectAtIndex:1]];
+        filePath = [tempFile path];
+
+        NSError *error = nil;
+        [blob writeTo:filePath error:&error];
+
+        if (error != nil) {
+          NSString *message = [NSString stringWithFormat:@"problem writing to temporary file %@: %@", filePath, [TiUtils messageFromError:error]];
+          NSMutableDictionary *event = [TiUtils dictionaryWithCode:[error code] message:message];
+          [self dispatchCallback:[NSArray arrayWithObjects:@"error", event, [saveCallbacks valueForKey:@"error"], nil]];
+          return;
+        }
+
+        // Have to keep the temp file from being deleted when we leave scope, so add it to the userinfo so it can be cleaned up there
+        [saveCallbacks setValue:tempFile forKey:@"tempFile"];
+        break;
+      }
+      default: {
+        NSMutableDictionary *event = [TiUtils dictionaryWithCode:-1 message:@"invalid media format: MIME type was video/, but data is image"];
+        [self dispatchCallback:[NSArray arrayWithObjects:@"error", event, [saveCallbacks valueForKey:@"error"], nil]];
+        return;
+      }
+      }
+      UISaveVideoAtPathToSavedPhotosAlbum(filePath, self, @selector(saveCompletedForVideo:error:contextInfo:), [saveCallbacks retain]);
+    } else {
+      KrollCallback *errorCallback = [saveCallbacks valueForKey:@"error"];
+      if (errorCallback != nil) {
+        NSMutableDictionary *event = [TiUtils dictionaryWithCode:-1 message:[NSString stringWithFormat:@"Invalid mime type: Expected either image/* or video/*, was: %@", mime]];
+        [self dispatchCallback:[NSArray arrayWithObjects:@"error", event, errorCallback, nil]];
+      } else {
+        [self throwException:@"Invalid mime type"
+                   subreason:[NSString stringWithFormat:@"Invalid mime type: Expected either image/* or video/*, was: %@", mime]
+                    location:CODELOCATION];
+      }
     }
-    
-    if ([image isKindOfClass:[TiBlob class]])
-    {
-        TiBlob *blob = (TiBlob*)image;
-        NSString *mime = [blob mimeType];
-        
-        if (mime==nil || [mime hasPrefix:@"image/"])
-        {
-            UIImage * savedImage = [blob image];
-            if (savedImage == nil) return;
-            UIImageWriteToSavedPhotosAlbum(savedImage, self, @selector(saveCompletedForImage:error:contextInfo:), [saveCallbacks retain]);
-        }
-        else if ([mime hasPrefix:@"video/"])
-        {
-            NSString* filePath;
-            switch ([blob type]) {
-                case TiBlobTypeFile: {
-                    filePath = [blob path];
-                    break;
-                }
-                case TiBlobTypeData: {
-                    // In this case, we need to write the blob data to a /tmp file and then load it.
-                    NSArray* typeinfo = [mime componentsSeparatedByString:@"/"];
-                    TiFile* tempFile = [TiUtils createTempFile:[typeinfo objectAtIndex:1]];
-                    filePath = [tempFile path];
-                    
-                    NSError* error = nil;
-                    [blob writeTo:filePath error:&error];
-                    
-                    if (error != nil) {
-                        NSString * message = [NSString stringWithFormat:@"problem writing to temporary file %@: %@", filePath, [TiUtils messageFromError:error]];
-                        NSMutableDictionary * event = [TiUtils dictionaryWithCode:[error code] message:message];
-                        [self dispatchCallback:[NSArray arrayWithObjects:@"error",event,[saveCallbacks valueForKey:@"error"],nil]];
-                        return;
-                    }
-                    
-                    // Have to keep the temp file from being deleted when we leave scope, so add it to the userinfo so it can be cleaned up there
-                    [saveCallbacks setValue:tempFile forKey:@"tempFile"];
-                    break;
-                }
-                default: {
-                    NSMutableDictionary * event = [TiUtils dictionaryWithCode:-1 message:@"invalid media format: MIME type was video/, but data is image"];
-                    [self dispatchCallback:[NSArray arrayWithObjects:@"error",event,[saveCallbacks valueForKey:@"error"],nil]];
-                    return;
-                }
-            }
-            UISaveVideoAtPathToSavedPhotosAlbum(filePath, self, @selector(saveCompletedForVideo:error:contextInfo:), [saveCallbacks retain]);
-        }
-        else
-        {
-            KrollCallback* errorCallback = [saveCallbacks valueForKey:@"error"];
-            if (errorCallback != nil) {
-                NSMutableDictionary * event = [TiUtils dictionaryWithCode:-1 message:[NSString stringWithFormat:@"Invalid mime type: Expected either image/* or video/*, was: %@",mime]];
-                [self dispatchCallback:[NSArray arrayWithObjects:@"error",event,errorCallback,nil]];
-            } else {
-                [self throwException:@"Invalid mime type"
-                           subreason:[NSString stringWithFormat:@"Invalid mime type: Expected either image/* or video/*, was: %@",mime]
-                            location:CODELOCATION];
-            }
-        }
+  } else if ([image isKindOfClass:[TiFile class]]) {
+    TiFile *file = (TiFile *)image;
+    NSString *mime = [Mimetypes mimeTypeForExtension:[file path]];
+    if (mime == nil || [mime hasPrefix:@"image/"]) {
+      NSData *data = [NSData dataWithContentsOfFile:[file path]];
+      UIImage *image = [[[UIImage alloc] initWithData:data] autorelease];
+      UIImageWriteToSavedPhotosAlbum(image, self, @selector(saveCompletedForImage:error:contextInfo:), [saveCallbacks retain]);
+    } else if ([mime hasPrefix:@"video/"]) {
+      UISaveVideoAtPathToSavedPhotosAlbum([file path], self, @selector(saveCompletedForVideo:error:contextInfo:), [saveCallbacks retain]);
     }
-    else if ([image isKindOfClass:[TiFile class]])
-    {
-        TiFile *file = (TiFile*)image;
-        NSString *mime = [Mimetypes mimeTypeForExtension:[file path]];
-        if (mime == nil || [mime hasPrefix:@"image/"])
-        {
-            NSData *data = [NSData dataWithContentsOfFile:[file path]];
-            UIImage *image = [[[UIImage alloc] initWithData:data] autorelease];
-            UIImageWriteToSavedPhotosAlbum(image, self, @selector(saveCompletedForImage:error:contextInfo:), [saveCallbacks retain]);
-        }
-        else if ([mime hasPrefix:@"video/"])
-        {
-            UISaveVideoAtPathToSavedPhotosAlbum([file path], self, @selector(saveCompletedForVideo:error:contextInfo:), [saveCallbacks retain]);
-        }
+  } else {
+    KrollCallback *errorCallback = [saveCallbacks valueForKey:@"error"];
+    if (errorCallback != nil) {
+      NSMutableDictionary *event = [TiUtils dictionaryWithCode:-1 message:[NSString stringWithFormat:@"Invalid media type: Expected either TiBlob or TiFile, was: %@", JavascriptNameForClass([image class])]];
+      [self dispatchCallback:[NSArray arrayWithObjects:@"error", event, errorCallback, nil]];
+    } else {
+      [self throwException:@"Invalid media type"
+                 subreason:[NSString stringWithFormat:@"Expected either TiBlob or TiFile, was: %@", JavascriptNameForClass([image class])]
+                  location:CODELOCATION];
     }
-    else
-    {
-        KrollCallback* errorCallback = [saveCallbacks valueForKey:@"error"];
-        if (errorCallback != nil) {
-            NSMutableDictionary * event = [TiUtils dictionaryWithCode:-1 message:[NSString stringWithFormat:@"Invalid media type: Expected either TiBlob or TiFile, was: %@",JavascriptNameForClass([image class])]];
-            [self dispatchCallback:[NSArray arrayWithObjects:@"error",event,errorCallback,nil]];
-        } else {
-            [self throwException:@"Invalid media type"
-                       subreason:[NSString stringWithFormat:@"Expected either TiBlob or TiFile, was: %@",JavascriptNameForClass([image class])]
-                        location:CODELOCATION];
-        }
-    }
+  }
 }
 #endif
 
@@ -1056,20 +1091,20 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 #ifdef USE_TI_MEDIAHASPHOTOGALLERYPERMISSIONS
 -(NSNumber*)hasPhotoGalleryPermissions:(id)unused
 {
-    NSString *readFromGalleryPermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSPhotoLibraryUsageDescription"];
-    NSString *addToGalleryPermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSPhotoLibraryAddUsageDescription"];
+  NSString *readFromGalleryPermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSPhotoLibraryUsageDescription"];
+  NSString *addToGalleryPermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSPhotoLibraryAddUsageDescription"];
 
-    // Reading (!) from gallery permissions are required on iOS 10 and later.
-    if ([TiUtils isIOS10OrGreater] && !readFromGalleryPermission) {
-        NSLog(@"[ERROR] iOS 10 and later requires the key \"NSPhotoLibraryUsageDescription\" inside the plist in your tiapp.xml when accessing the photo library to store media. It will be ignored on devices < iOS 10. Please add the key and re-run the application.");
-    }
+  // Reading (!) from gallery permissions are required on iOS 10 and later.
+  if ([TiUtils isIOS10OrGreater] && !readFromGalleryPermission) {
+    NSLog(@"[ERROR] iOS 10 and later requires the key \"NSPhotoLibraryUsageDescription\" inside the plist in your tiapp.xml when accessing the photo library to store media. It will be ignored on devices < iOS 10. Please add the key and re-run the application.");
+  }
 
-    // Writing (!) to gallery permissions are required on iOS 11 and later.
-    if ([TiUtils isIOS11OrGreater] && !addToGalleryPermission) {
-        NSLog(@"[ERROR] iOS 11 and later requires the key \"NSPhotoLibraryAddUsageDescription\" inside the plist in your tiapp.xml when writing to the photo library to store media. It will be ignored on devices < iOS 11. Please add the key and re-run the application.");
-    }
+  // Writing (!) to gallery permissions are required on iOS 11 and later.
+  if ([TiUtils isIOS11OrGreater] && !addToGalleryPermission) {
+    NSLog(@"[ERROR] iOS 11 and later requires the key \"NSPhotoLibraryAddUsageDescription\" inside the plist in your tiapp.xml when writing to the photo library to store media. It will be ignored on devices < iOS 11. Please add the key and re-run the application.");
+  }
 
-    return NUMBOOL([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized);
+  return NUMBOOL([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized);
 }
 #endif
 
@@ -1506,13 +1541,13 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 
 -(void)updatePopoverNow:(UIViewController*)picker_
 {
-    UIViewController* theController = picker_;
-    [theController setModalPresentationStyle:UIModalPresentationPopover];
-    UIPopoverPresentationController* thePresenter = [theController popoverPresentationController];
-    [thePresenter setPermittedArrowDirections:arrowDirection];
-    [thePresenter setDelegate:self];
-    [[TiApp app] showModalController:theController animated:animatedPicker];
-    return;
+  UIViewController *theController = picker_;
+  [theController setModalPresentationStyle:UIModalPresentationPopover];
+  UIPopoverPresentationController *thePresenter = [theController popoverPresentationController];
+  [thePresenter setPermittedArrowDirections:arrowDirection];
+  [thePresenter setDelegate:self];
+  [[TiApp app] showModalController:theController animated:animatedPicker];
+  return;
 }
 #endif
 
@@ -1539,192 +1574,173 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
 }
 
 #if defined(USE_TI_MEDIASHOWCAMERA) || defined(USE_TI_MEDIAOPENPHOTOGALLERY)
--(void)showPicker:(NSDictionary*)args isCamera:(BOOL)isCamera
+- (void)showPicker:(NSDictionary *)args isCamera:(BOOL)isCamera
 {
-    if (picker!=nil)
-    {
-        [self sendPickerError:MediaModuleErrorBusy];
+  if (picker != nil) {
+    [self sendPickerError:MediaModuleErrorBusy];
+    return;
+  }
+  BOOL customPicker = isCamera;
+
+  BOOL inPopOver = [TiUtils boolValue:@"inPopOver" properties:args def:NO] && isCamera && [TiUtils isIPad];
+
+  if (customPicker) {
+    customPicker = !inPopOver;
+  }
+
+  if (customPicker) {
+    picker = [[TiImagePickerController alloc] initWithProperties:args];
+  } else {
+    picker = [[UIImagePickerController alloc] init];
+  }
+
+  [picker setDelegate:self];
+
+  animatedPicker = YES;
+  saveToRoll = NO;
+  BOOL editable = NO;
+  UIImagePickerControllerSourceType ourSource = (isCamera ? UIImagePickerControllerSourceTypeCamera : UIImagePickerControllerSourceTypePhotoLibrary);
+
+  if (args != nil) {
+    [self commonPickerSetup:args];
+
+    NSNumber *imageEditingObject = [args objectForKey:@"allowEditing"];
+    saveToRoll = [TiUtils boolValue:@"saveToPhotoGallery" properties:args def:NO];
+
+    if (imageEditingObject == nil) {
+      imageEditingObject = [args objectForKey:@"allowImageEditing"];
+    }
+
+    editable = [TiUtils boolValue:imageEditingObject def:NO];
+    [picker setAllowsEditing:editable];
+
+    NSArray *sourceTypes = [UIImagePickerController availableMediaTypesForSourceType:ourSource];
+    id types = [args objectForKey:@"mediaTypes"];
+
+    BOOL movieRequired = NO;
+    BOOL imageRequired = NO;
+    BOOL livePhotoRequired = NO;
+
+    if ([types isKindOfClass:[NSArray class]]) {
+      for (int c = 0; c < [types count]; c++) {
+        if ([[types objectAtIndex:c] isEqualToString:(NSString *)kUTTypeMovie]) {
+          movieRequired = YES;
+        } else if ([[types objectAtIndex:c] isEqualToString:(NSString *)kUTTypeImage]) {
+          imageRequired = YES;
+        }
+      }
+      picker.mediaTypes = [NSArray arrayWithArray:types];
+    } else if ([types isKindOfClass:[NSString class]]) {
+      if ([types isEqualToString:(NSString *)kUTTypeMovie] && ![sourceTypes containsObject:(NSString *)kUTTypeMovie]) {
+        // no movie type supported...
+        [self sendPickerError:MediaModuleErrorNoVideo];
         return;
-    }
-    BOOL customPicker = isCamera;
-
-    BOOL inPopOver = [TiUtils boolValue:@"inPopOver" properties:args def:NO] && isCamera && [TiUtils isIPad];
-
-    if (customPicker) {
-        customPicker = !inPopOver;
+      }
+      picker.mediaTypes = [NSArray arrayWithObject:types];
     }
 
-    if (customPicker) {
-        picker = [[TiImagePickerController alloc] initWithProperties:args];
-    } else {
-        picker = [[UIImagePickerController alloc] init];
+    // if we require movie but not image and we don't support movie, bail...
+    if (movieRequired == YES && imageRequired == NO && ![sourceTypes containsObject:(NSString *)kUTTypeMovie]) {
+      // no movie type supported...
+      [self sendPickerError:MediaModuleErrorNoCamera];
+      return;
     }
 
-    [picker setDelegate:self];
+    // iOS 10 requires a certain number of additional permissions declared in the Info.plist (<ios><plist/></ios>)
+    if ([TiUtils isIOS10OrGreater]) {
+      NSString *microphonePermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSMicrophoneUsageDescription"];
+      NSString *readFromGalleryPermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSPhotoLibraryUsageDescription"];
+      NSString *addToGalleryPermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSPhotoLibraryAddUsageDescription"];
 
-    animatedPicker = YES;
-    saveToRoll = NO;
-    BOOL editable = NO;
-    UIImagePickerControllerSourceType ourSource = (isCamera ? UIImagePickerControllerSourceTypeCamera : UIImagePickerControllerSourceTypePhotoLibrary);
+      // Microphone permissions are required when using the video-camera
+      if (movieRequired == YES && !microphonePermission) {
+        NSLog(@"[ERROR] iOS 10 and later requires the key \"NSMicrophoneUsageDescription\" inside the plist in your tiapp.xml when accessing the native camera to take videos. Please add the key and re-run the application.");
+      }
 
-    if (args!=nil)
-    {
-        [self commonPickerSetup:args];
-        
-        NSNumber * imageEditingObject = [args objectForKey:@"allowEditing"];
-        saveToRoll = [TiUtils boolValue:@"saveToPhotoGallery" properties:args def:NO];
-        
-        if (imageEditingObject==nil) {
-            imageEditingObject = [args objectForKey:@"allowImageEditing"];
-        }
-        
-        editable = [TiUtils boolValue:imageEditingObject def:NO];
-        [picker setAllowsEditing:editable];
-        
-        NSArray *sourceTypes = [UIImagePickerController availableMediaTypesForSourceType:ourSource];
-        id types = [args objectForKey:@"mediaTypes"];
-        
-        BOOL movieRequired = NO;
-        BOOL imageRequired = NO;
-        BOOL livePhotoRequired = NO;
-        
-        if ([types isKindOfClass:[NSArray class]])
-        {
-            for (int c=0;c<[types count];c++)
-            {
-                if ([[types objectAtIndex:c] isEqualToString:(NSString*)kUTTypeMovie])
-                {
-                    movieRequired = YES;
-                }
-                else if ([[types objectAtIndex:c] isEqualToString:(NSString*)kUTTypeImage])
-                {
-                    imageRequired = YES;
-                }
-            }
-            picker.mediaTypes = [NSArray arrayWithArray:types];
-        }
-        else if ([types isKindOfClass:[NSString class]])
-        {
-            if ([types isEqualToString:(NSString*)kUTTypeMovie] && ![sourceTypes containsObject:(NSString *)kUTTypeMovie])
-            {
-                // no movie type supported...
-                [self sendPickerError:MediaModuleErrorNoVideo];
-                return;
-            }
-            picker.mediaTypes = [NSArray arrayWithObject:types];
-        }
-        
-        
-        // if we require movie but not image and we don't support movie, bail...
-        if (movieRequired == YES && imageRequired == NO && ![sourceTypes containsObject:(NSString *)kUTTypeMovie])
-        {
-            // no movie type supported...
-            [self sendPickerError:MediaModuleErrorNoCamera];
-            return ;
-        }
-        
-        // iOS 10 requires a certain number of additional permissions declared in the Info.plist (<ios><plist/></ios>)
-        if ([TiUtils isIOS10OrGreater]) {
-            NSString *microphonePermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSMicrophoneUsageDescription"];
-            NSString *readFromGalleryPermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSPhotoLibraryUsageDescription"];
-            NSString *addToGalleryPermission = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSPhotoLibraryAddUsageDescription"];
+      // Gallery permissions are required when saving or selecting media from the gallery
+      if (saveToRoll && !readFromGalleryPermission) {
+        NSLog(@"[ERROR] iOS 10 and later requires the key \"NSPhotoLibraryUsageDescription\" inside the plist in your tiapp.xml when accessing the photo library to store media. Please add the key and re-run the application.");
+      }
 
-            // Microphone permissions are required when using the video-camera
-            if (movieRequired == YES && !microphonePermission) {
-                NSLog(@"[ERROR] iOS 10 and later requires the key \"NSMicrophoneUsageDescription\" inside the plist in your tiapp.xml when accessing the native camera to take videos. Please add the key and re-run the application.");
-            }
-            
-            // Gallery permissions are required when saving or selecting media from the gallery
-            if (saveToRoll && !readFromGalleryPermission) {
-                NSLog(@"[ERROR] iOS 10 and later requires the key \"NSPhotoLibraryUsageDescription\" inside the plist in your tiapp.xml when accessing the photo library to store media. Please add the key and re-run the application.");
-            }
-          
-            // Writing (!) to gallery permissions are also required on iOS 11 and later.
-            if ([TiUtils isIOS11OrGreater] && saveToRoll && !addToGalleryPermission) {
-                NSLog(@"[ERROR] iOS 11 and later requires the key \"NSPhotoLibraryAddUsageDescription\" inside the plist in your tiapp.xml when writing to the photo library to store media. It will be ignored on devices < iOS 11. Please add the key and re-run the application.");
-            }
-        }
-        
-        double videoMaximumDuration = [TiUtils doubleValue:[args objectForKey:@"videoMaximumDuration"] def:0.0];
-        
-        if (videoMaximumDuration != 0.0)
-        {
-            [picker setVideoMaximumDuration:videoMaximumDuration/1000];
-        }
-        
-        [picker setVideoQuality:[TiUtils intValue:[args objectForKey:@"videoQuality"] def:UIImagePickerControllerQualityTypeMedium]];
+      // Writing (!) to gallery permissions are also required on iOS 11 and later.
+      if ([TiUtils isIOS11OrGreater] && saveToRoll && !addToGalleryPermission) {
+        NSLog(@"[ERROR] iOS 11 and later requires the key \"NSPhotoLibraryAddUsageDescription\" inside the plist in your tiapp.xml when writing to the photo library to store media. It will be ignored on devices < iOS 11. Please add the key and re-run the application.");
+      }
     }
 
-    // do this afterwards above so we can first check for video support
+    double videoMaximumDuration = [TiUtils doubleValue:[args objectForKey:@"videoMaximumDuration"] def:0.0];
 
-    if (![UIImagePickerController isSourceTypeAvailable:ourSource])
-    {
-        [self sendPickerError:MediaModuleErrorNoCamera];
-        return;
+    if (videoMaximumDuration != 0.0) {
+      [picker setVideoMaximumDuration:videoMaximumDuration / 1000];
     }
-    [picker setSourceType:ourSource];
 
-    // this must be done after we set the source type or you'll get an exception
-    if (isCamera && ourSource == UIImagePickerControllerSourceTypeCamera)
-    {
-        // turn on/off camera controls - nice to turn off when you want to have your own UI
-        [picker setShowsCameraControls:[TiUtils boolValue:@"showControls" properties:args def:YES]];
-        
-        // allow an overlay view
-        TiViewProxy *cameraViewProxy = [args objectForKey:@"overlay"];
-        if (cameraViewProxy!=nil)
-        {
-            ENSURE_TYPE(cameraViewProxy,TiViewProxy);
-            cameraView = [cameraViewProxy retain];
-            UIView *view = [cameraView view];
-            
+    [picker setVideoQuality:[TiUtils intValue:[args objectForKey:@"videoQuality"] def:UIImagePickerControllerQualityTypeMedium]];
+  }
+
+  // do this afterwards above so we can first check for video support
+
+  if (![UIImagePickerController isSourceTypeAvailable:ourSource]) {
+    [self sendPickerError:MediaModuleErrorNoCamera];
+    return;
+  }
+  [picker setSourceType:ourSource];
+
+  // this must be done after we set the source type or you'll get an exception
+  if (isCamera && ourSource == UIImagePickerControllerSourceTypeCamera) {
+    // turn on/off camera controls - nice to turn off when you want to have your own UI
+    [picker setShowsCameraControls:[TiUtils boolValue:@"showControls" properties:args def:YES]];
+
+    // allow an overlay view
+    TiViewProxy *cameraViewProxy = [args objectForKey:@"overlay"];
+    if (cameraViewProxy != nil) {
+      ENSURE_TYPE(cameraViewProxy, TiViewProxy);
+      cameraView = [cameraViewProxy retain];
+      UIView *view = [cameraView view];
+
 #ifndef TI_USE_AUTOLAYOUT
-            ApplyConstraintToViewWithBounds([cameraViewProxy layoutProperties], (TiUIView*)view, [[UIScreen mainScreen] bounds]);
+      ApplyConstraintToViewWithBounds([cameraViewProxy layoutProperties], (TiUIView *)view, [[UIScreen mainScreen] bounds]);
 #else
-            [TiUtils setView:view positionRect:view.bounds];
+      [TiUtils setView:view
+          positionRect:view.bounds];
 #endif
-            
-            [cameraView windowWillOpen];
-            [picker setCameraOverlayView:view];
-            
-            [cameraView windowDidOpen];
-            [cameraView layoutChildren:NO];
-        }
-        
-        // allow a transform on the preview image
-        id transform = [args objectForKey:@"transform"];
-        if (transform!=nil)
-        {
-            ENSURE_TYPE(transform,Ti2DMatrix);
-            [picker setCameraViewTransform:[transform matrix]];
-        }
-        else if (cameraView!=nil && customPicker)
-        {
-            //No transforms in popover
-            CGSize screenSize = [[UIScreen mainScreen] bounds].size;
-            UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-            if (!UIInterfaceOrientationIsPortrait(orientation)) {
-                screenSize = CGSizeMake(screenSize.height, screenSize.width);
-            }
-            float cameraAspectRatio = 4.0 / 3.0;
-            float camViewHeight = screenSize.width * cameraAspectRatio;
-            float scale = screenSize.height/camViewHeight;
-            
-            CGAffineTransform translate = CGAffineTransformMakeTranslation(0, (screenSize.height - camViewHeight) / 2.0);
-            picker.cameraViewTransform = CGAffineTransformScale(translate, scale, scale);
-        }
+
+      [cameraView windowWillOpen];
+      [picker setCameraOverlayView:view];
+
+      [cameraView windowDidOpen];
+      [cameraView layoutChildren:NO];
     }
 
-    if (isCamera) {
-        if (inPopOver) {
-            [self displayModalPicker:picker settings:args];
-        }
-        else {
-            [self displayCamera:picker];
-        }
-    } else {
-        [self displayModalPicker:picker settings:args];
+    // allow a transform on the preview image
+    id transform = [args objectForKey:@"transform"];
+    if (transform != nil) {
+      ENSURE_TYPE(transform, Ti2DMatrix);
+      [picker setCameraViewTransform:[transform matrix]];
+    } else if (cameraView != nil && customPicker) {
+      //No transforms in popover
+      CGSize screenSize = [[UIScreen mainScreen] bounds].size;
+      UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+      if (!UIInterfaceOrientationIsPortrait(orientation)) {
+        screenSize = CGSizeMake(screenSize.height, screenSize.width);
+      }
+      float cameraAspectRatio = 4.0 / 3.0;
+      float camViewHeight = screenSize.width * cameraAspectRatio;
+      float scale = screenSize.height / camViewHeight;
+
+      CGAffineTransform translate = CGAffineTransformMakeTranslation(0, (screenSize.height - camViewHeight) / 2.0);
+      picker.cameraViewTransform = CGAffineTransformScale(translate, scale, scale);
     }
+  }
+
+  if (isCamera) {
+    if (inPopOver) {
+      [self displayModalPicker:picker settings:args];
+    } else {
+      [self displayCamera:picker];
+    }
+  } else {
+    [self displayModalPicker:picker settings:args];
+  }
 }
 #endif
 
@@ -2175,46 +2191,6 @@ MAKE_SYSTEM_PROP(VIDEO_TIME_OPTION_EXACT,MPMovieTimeOptionExact);
         NSMutableDictionary *event = [NSMutableDictionary dictionary];
         [event setObject:[self volume] forKey:@"volume"];
         [self fireEvent:@"volume" withObject:event];
-    }
-}
-
--(void)_listenerAdded:(NSString *)type count:(int)count
-{
-    if (count == 1 && [type isEqualToString:@"routechange"])
-    {
-        WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe
-        [[TiMediaAudioSession sharedSession] startAudioSession]; // Have to start a session to get a listener
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChanged:) name:kTiMediaAudioSessionRouteChange object:[TiMediaAudioSession sharedSession]];
-    }
-    else if (count == 1 && [type isEqualToString:@"volume"])
-    {
-        WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-        [[TiMediaAudioSession sharedSession] startAudioSession]; // Have to start a session to get a listener
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioVolumeChanged:) name:kTiMediaAudioSessionVolumeChange object:[TiMediaAudioSession sharedSession]];
-    }
-    else if (count == 1 && [type isEqualToString:@"recordinginput"])
-    {
-        DebugLog(@"[WARN] This event is no longer supported by the MediaModule. Check the inputs property fo the currentRoute property to check if an input line is available");
-    }
-    else if (count == 1 && [type isEqualToString:@"linechange"])
-    {
-        DebugLog(@"[WARN] This event is no longer supported by the MediaModule. Listen for the routechange event instead");
-    }
-}
-
--(void)_listenerRemoved:(NSString *)type count:(int)count
-{
-    if (count == 0 && [type isEqualToString:@"routechange"])
-    {
-        WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-        [[TiMediaAudioSession sharedSession] stopAudioSession];
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:kTiMediaAudioSessionRouteChange object:[TiMediaAudioSession sharedSession]];
-    }
-    else if (count == 0 && [type isEqualToString:@"volume"])
-    {
-        WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-        [[TiMediaAudioSession sharedSession] stopAudioSession];
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:kTiMediaAudioSessionVolumeChange object:[TiMediaAudioSession sharedSession]];
     }
 }
 
