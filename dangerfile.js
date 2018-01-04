@@ -1,4 +1,4 @@
-/* global danger, fail, warn, markdown, message, schedule */
+/* global danger, fail, warn, markdown, message */
 'use strict';
 // requires
 const fs = require('fs-extra');
@@ -22,8 +22,6 @@ const Label = {
 };
 // Array to gather up the labels we want to auto-apply to the PR
 const labels = [];
-// Store the current directory so we can join it with file paths from PR metadata
-const CURRENT_DIR = path.resolve(__dirname);
 
 // To spit out the raw data we can use:
 // markdown(JSON.stringify(danger));

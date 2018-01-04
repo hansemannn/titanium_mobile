@@ -1628,28 +1628,29 @@ process.exit(1);
 
 				if (timodule && Array.isArray(timodule.modules)) {
 					for (let dependency of timodule.modules) {
-						if (!dependency.platform || /^android$/.test(dependency.platform)) {
+						if (dependency.platform || !/^android$/.test(dependency.platform)) {
+							continue;
+						}
 
-							let missing = true;
-							for (let module of this.nativeLibModules) {
-								if (module.id === dependency.id) {
-									missing = false;
-									break;
-								}
+						let missing = true;
+						for (let module of this.nativeLibModules) {
+							if (module.id === dependency.id) { // eslint-disable-line max-depth
+								missing = false;
+								break;
 							}
-							if (missing) {
-								dependency.depended = module;
+						}
+						if (missing) {
+							dependency.depended = module;
 
-								// attempt to include missing dependency
-								this.cli.tiapp.modules.push({
-									id: dependency.id,
-									version: dependency.version,
-									platform: [ 'android' ],
-									deployType: [ this.deployType ]
-								});
+							// attempt to include missing dependency
+							this.cli.tiapp.modules.push({
+								id: dependency.id,
+								version: dependency.version,
+								platform: [ 'android' ],
+								deployType: [ this.deployType ]
+							});
 
-								unresolvedDependencies.push(dependency);
-							}
+							unresolvedDependencies.push(dependency);
 						}
 					}
 				}
