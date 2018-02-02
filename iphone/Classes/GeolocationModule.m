@@ -12,6 +12,7 @@
 #import "NSData+Additions.h"
 #import "TiApp.h"
 #import "TiEvaluator.h"
+#import "TiPromiseProxy.h"
 
 #import <sys/utsname.h>
 
@@ -214,9 +215,13 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     }
   }
   if (singleLocation != nil) {
-    for (KrollCallback *callback in [NSArray arrayWithArray:singleLocation]) {
-      KrollContext *ctx = (KrollContext *)[callback context];
-      if ([bridge krollContext] == ctx) {
+    for (id callback in [NSArray arrayWithArray:singleLocation]) {
+      if ([callback isKindOfClass:[KrollCallback class]]) {
+        KrollContext *ctx = (KrollContext *)[callback context];
+        if ([bridge krollContext] == ctx) {
+          [singleLocation removeObject:callback];
+        }
+      } else {
         [singleLocation removeObject:callback];
       }
     }
@@ -526,26 +531,39 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
   [self startStopLocationManagerIfNeeded];
 }
 
-- (void)getCurrentPosition:(id)callback
+- (TiPromiseProxy *)getCurrentPosition:(id)callback
 {
-  ENSURE_SINGLE_ARG(callback, KrollCallback);
+  ENSURE_SINGLE_ARG_OR_NIL(callback, KrollCallback);
   ENSURE_UI_THREAD(getCurrentPosition, callback);
+  
+  TiPromiseProxy *promiseProxy = [[TiPromiseProxy alloc] _initWithPageContext:self.pageContext];
 
   // If the location updates are started, invoke the callback directly.
   if (locationManager != nil && locationManager.location != nil && trackingLocation == YES) {
     CLLocation *currentLocation = locationManager.location;
     NSMutableDictionary *event = [TiUtils dictionaryWithCode:0 message:nil];
     [event setObject:[self locationDictionary:currentLocation] forKey:@"coords"];
-    [self _fireEventToListener:@"location" withObject:event listener:callback thisObject:nil];
+    
+    if (callback == nil) {
+      [promiseProxy resolve:event];
+    } else {
+      [self _fireEventToListener:@"location" withObject:event listener:callback thisObject:nil];
+    }
   }
   // Otherwise, start the location manager.
   else {
     if (singleLocation == nil) {
       singleLocation = [[NSMutableArray alloc] initWithCapacity:1];
     }
-    [singleLocation addObject:callback];
+    if (callback == nil) {
+      [singleLocation addObject:promiseProxy];
+    } else {
+      [singleLocation addObject:callback];
+    }
     [self startStopLocationManagerIfNeeded];
   }
+  
+  return promiseProxy;
 }
 
 - (NSString *)lastGeolocation
@@ -925,8 +943,12 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 {
   // check to see if we have any single shot location callbacks
   if (singleLocation != nil) {
-    for (KrollCallback *callback in singleLocation) {
-      [self _fireEventToListener:@"location" withObject:event listener:callback thisObject:nil];
+    for (id callback in singleLocation) {
+      if ([callback isKindOfClass:[KrollCallback class]]) {
+        [self _fireEventToListener:@"location" withObject:event listener:callback thisObject:nil];
+      } else {
+        [(TiPromiseProxy *)callback resolve:event];
+      }
     }
 
     // after firing, we remove them

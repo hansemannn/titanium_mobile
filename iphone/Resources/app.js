@@ -15,7 +15,11 @@ var btn = Ti.UI.createButton({
 });
 
 btn.addEventListener('click', function() {
-    Ti.API.info('Hello world!');
+  Ti.Geolocation.getCurrentPosition().then(function(event) {
+    alert('Hello from resolver!');
+  }).catch(function(error) {
+    alert('Hello from error!');
+  });
 });
 
 win.add(btn);
