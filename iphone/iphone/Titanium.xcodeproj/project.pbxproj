@@ -885,11 +885,6 @@
 		B606EF34190B109D00663EFC /* TiNetworkHTTPClientProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiNetworkHTTPClientProxy.m; sourceTree = "<group>"; };
 		B606EF48190B14ED00663EFC /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		B606EF49190B14ED00663EFC /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
-		B606EF59190B42FB00663EFC /* APSHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPClient.h; sourceTree = "<group>"; };
-		B606EF5A190B42FB00663EFC /* APSHTTPHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPHelper.h; sourceTree = "<group>"; };
-		B606EF5C190B42FB00663EFC /* APSHTTPPostForm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPPostForm.h; sourceTree = "<group>"; };
-		B606EF5D190B42FB00663EFC /* APSHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPRequest.h; sourceTree = "<group>"; };
-		B606EF5E190B42FB00663EFC /* APSHTTPResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPResponse.h; sourceTree = "<group>"; };
 		B606EF5F190B42FB00663EFC /* libAPSHTTPClient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libAPSHTTPClient.a; path = ../Classes/APSHTTPClient/libAPSHTTPClient.a; sourceTree = "<group>"; };
 		B637616B1BC5CA4A0070A695 /* TiLayoutDimension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiLayoutDimension.h; path = Layout/TiLayoutDimension.h; sourceTree = "<group>"; };
 		B637616C1BC5CA4A0070A695 /* TiLayoutDimension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiLayoutDimension.m; path = Layout/TiLayoutDimension.m; sourceTree = "<group>"; };
@@ -961,6 +956,11 @@
 		DADE76D313D65C590079FC75 /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
 		DAE541E113577BEC00A65123 /* TiDataStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiDataStream.h; sourceTree = "<group>"; };
 		DAE541E213577BEC00A65123 /* TiDataStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiDataStream.m; sourceTree = "<group>"; };
+		DB0D1080202638ED00D7D389 /* APSHTTPResponse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = APSHTTPResponse.h; path = include/APSHTTPClient/APSHTTPResponse.h; sourceTree = "<group>"; };
+		DB0D1081202638ED00D7D389 /* APSHTTPPostForm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = APSHTTPPostForm.h; path = include/APSHTTPClient/APSHTTPPostForm.h; sourceTree = "<group>"; };
+		DB0D1082202638EE00D7D389 /* APSHTTPHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = APSHTTPHelper.h; path = include/APSHTTPClient/APSHTTPHelper.h; sourceTree = "<group>"; };
+		DB0D1083202638EE00D7D389 /* APSHTTPRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = APSHTTPRequest.h; path = include/APSHTTPClient/APSHTTPRequest.h; sourceTree = "<group>"; };
+		DB0D1084202638EE00D7D389 /* APSHTTPClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = APSHTTPClient.h; path = include/APSHTTPClient/APSHTTPClient.h; sourceTree = "<group>"; };
 		DB0D54931F3B4A3D00E2B771 /* TiUIToolbarProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIToolbarProxy.h; sourceTree = "<group>"; };
 		DB0D54941F3B4A3D00E2B771 /* TiUIToolbarProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIToolbarProxy.m; sourceTree = "<group>"; };
 		DB90749D1D84299500BB0FD5 /* TiUIiOSFeedbackGeneratorProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSFeedbackGeneratorProxy.h; sourceTree = "<group>"; };
@@ -2307,11 +2307,11 @@
 		B606EF58190B42FB00663EFC /* APSHTTPClient */ = {
 			isa = PBXGroup;
 			children = (
-				B606EF59190B42FB00663EFC /* APSHTTPClient.h */,
-				B606EF5A190B42FB00663EFC /* APSHTTPHelper.h */,
-				B606EF5C190B42FB00663EFC /* APSHTTPPostForm.h */,
-				B606EF5D190B42FB00663EFC /* APSHTTPRequest.h */,
-				B606EF5E190B42FB00663EFC /* APSHTTPResponse.h */,
+				DB0D1084202638EE00D7D389 /* APSHTTPClient.h */,
+				DB0D1082202638EE00D7D389 /* APSHTTPHelper.h */,
+				DB0D1081202638ED00D7D389 /* APSHTTPPostForm.h */,
+				DB0D1083202638EE00D7D389 /* APSHTTPRequest.h */,
+				DB0D1080202638ED00D7D389 /* APSHTTPResponse.h */,
 			);
 			name = APSHTTPClient;
 			path = ../Classes/APSHTTPClient;
