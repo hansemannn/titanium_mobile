@@ -4,7 +4,7 @@
  * @module cli/_build
  *
  * @copyright
- * Copyright (c) 2009-2018 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2017 by Appcelerator, Inc. All Rights Reserved.
  *
  * @license
  * Licensed under the terms of the Apache Public License
@@ -15,12 +15,14 @@
 
 const appc = require('node-appc'),
 	async = require('async'),
+	babel = require('babel-core'),
 	bufferEqual = require('buffer-equal'),
 	Builder = require('node-titanium-sdk/lib/builder'),
 	CleanCSS = require('clean-css'),
 	crypto = require('crypto'),
 	cyan = require('colors').cyan,
 	DOMParser = require('xmldom').DOMParser,
+	env = require('babel-preset-env'),
 	ejs = require('ejs'),
 	fields = require('fields'),
 	fs = require('fs'),
@@ -57,8 +59,8 @@ function iOSBuilder() {
 
 	// object mapping the build-targets to their deploy-types
 	this.deployTypes = {
-		simulator: 'development',
-		device: 'test',
+		'simulator': 'development',
+		'device': 'test',
 		'dist-appstore': 'production',
 		'dist-adhoc': 'production'
 	};
@@ -107,16 +109,9 @@ function iOSBuilder() {
 	// object of all used Titanium symbols, used to determine preprocessor statements, e.g. USE_TI_UIWINDOW
 	this.tiSymbols = {};
 
-	// when true, uses the JavaScriptCore that ships with iOS instead of the original Titanium version
-	this.useJSCore = true;
-
-	// when true, uses the new build system (Xcode 9+)
-	this.useNewBuildSystem = true;
-
 	// when false, JavaScript will run on its own thread - the Kroll Thread
 	this.runOnMainThread = true;
 
-	// when true, uses the AutoLayout engine
 	this.useAutoLayout = false;
 
 	// populated the first time getDeviceInfo() is called
@@ -467,7 +462,7 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 							default: true,
 							desc: __('focus the iOS Simulator')
 						},
-						xcode: {
+						'xcode': {
 							// DEPRECATED
 							// secret flag to perform Xcode pre-compile build step
 							callback: function (value) {
@@ -497,7 +492,7 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 							hidden: true
 						},
 						'ios-version':                this.configOptioniOSVersion(130),
-						keychain:                   this.configOptionKeychain(),
+						'keychain':                   this.configOptionKeychain(),
 						'launch-bundle-id':           this.configOptionLaunchBundleId(),
 						'launch-url': {
 							// url for the application to launch in mobile Safari, as soon as the app boots up
@@ -508,7 +503,7 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 						'profiler-host': {
 							hidden: true
 						},
-						target:                     this.configOptionTarget(110),
+						'target':                     this.configOptionTarget(110),
 						'watch-app-name':             this.configOptionWatchAppName(212),
 						'watch-device-id':            this.configOptionWatchDeviceId(215)
 					}
@@ -1828,10 +1823,6 @@ iOSBuilder.prototype.validate = function validate(logger, config, cli) {
 		// this may have already been called in an option validate() callback
 		this.initTiappSettings();
 
-		// Transpilation details
-		this.transpile = cli.tiapp['transpile'] === true; // Transpiling is an opt-in process for now
-		// this.minSupportedIosSdk holds the target ios version to transpile down to
-
 		// check for blacklisted files in the Resources directory
 		[	path.join(this.projectDir, 'Resources'),
 			path.join(this.projectDir, 'Resources', 'iphone'),
@@ -1940,16 +1931,12 @@ iOSBuilder.prototype.validate = function validate(logger, config, cli) {
 				const xcodeInfo = this.iosInfo.xcode;
 
 				function sortXcodeIds(a, b) {
-					// prioritize selected xcode
-					if (xcodeInfo[b].selected) {
-						return 1;
-					}
-					return appc.version.gt(xcodeInfo[a].version, xcodeInfo[b].version) ? -1 : appc.version.lt(xcodeInfo[a].version, xcodeInfo[b].version) ? 1 : 0;
+					return xcodeInfo[a].selected || appc.version.gt(xcodeInfo[a].version, xcodeInfo[b].version) ? -1 : appc.version.lt(xcodeInfo[a].version, xcodeInfo[b].version) ? 1 : 0;
 				}
 
 				if (this.iosSdkVersion) {
 					// find the Xcode for this version
-					Object.keys(this.iosInfo.xcode).sort(sortXcodeIds).some(function (ver) {
+					Object.keys(this.iosInfo.xcode).sort(sortXcodeIds).reverse().some(function (ver) {
 						if (this.iosInfo.xcode[ver].sdks.indexOf(this.iosSdkVersion) !== -1) {
 							this.xcodeEnv = this.iosInfo.xcode[ver];
 							return true;
@@ -1962,8 +1949,9 @@ iOSBuilder.prototype.validate = function validate(logger, config, cli) {
 						logger.error(__('Unable to find any Xcode installations that support iOS SDK %s.', this.iosSdkVersion) + '\n');
 						process.exit(1);
 					}
-
-				} else { // device, simulator, dist-appstore, dist-adhoc
+				} else if (cli.argv.target === 'simulator' && !cli.argv['build-only']) {
+					// we'll let ioslib suggest an iOS version
+				} else { // device, dist-appstore, dist-adhoc
 					Object.keys(xcodeInfo)
 						.filter(function (id) { return xcodeInfo[id].supported; })
 						.sort(sortXcodeIds)
@@ -2336,6 +2324,7 @@ iOSBuilder.prototype.doAnalytics = function doAnalytics() {
 	}
 
 	cli.addAnalyticsEvent(eventName, {
+		dir:         cli.argv['project-dir'],
 		name:        this.tiapp.name,
 		publisher:   this.tiapp.publisher,
 		url:         this.tiapp.url,
@@ -2388,10 +2377,7 @@ iOSBuilder.prototype.initialize = function initialize() {
 	this.currentBuildManifest.encryptJS          = !!this.encryptJS;
 	this.currentBuildManifest.showErrorController          = this.showErrorController;
 
-	// use native JSCore by default (TIMOB-23136)
-	this.currentBuildManifest.useJSCore = this.useJSCore = !this.debugHost && !this.profilerHost && this.tiapp.ios['use-jscore-framework'] !== false;
-
-	// remove this check on 8.0.0
+	// Remove this check on 7.0.0
 	if (this.tiapp.ios && (this.tiapp.ios.hasOwnProperty('run-on-main-thread'))) {
 		this.logger.warn(__('run-on-main-thread no longer set in the <ios> section of the tiapp.xml. Use <property name="run-on-main-thread" type="bool">true</property> instead'));
 		this.currentBuildManifest.runOnMainThread = this.runOnMainThread = (this.tiapp.ios['run-on-main-thread'] === true);
@@ -2400,13 +2386,7 @@ iOSBuilder.prototype.initialize = function initialize() {
 	}
 	this.currentBuildManifest.useAutoLayout = this.useAutoLayout = this.tiapp.ios && (this.tiapp.ios['use-autolayout'] === true);
 
-	// deprecate TiJSCore and leave a warning if used anyway
-	if (!this.useJSCore) {
-		this.logger.warn(__('Titanium 7.0.0 deprecates the legacy JavaScriptCore library in favor of the built-in JavaScriptCore.'));
-		this.logger.warn(__('The legacy JavaScriptCore library will be removed in Titanium SDK 8.0.0.'));
-	}
-
-	// deprecate KrollThread and leave a warning if used anyway
+	// Deprecate KrollThread and leave a warning if used anyway
 	if (!this.runOnMainThread) {
 		this.logger.warn(__('Titanium 7.0.0 deprecates the legacy UI-execution on Kroll-Thread in favor of the Main-Thread.'));
 		this.logger.warn(__('The legacy execution will be removed in Titanium SDK 8.0.0.'));
@@ -2445,17 +2425,6 @@ iOSBuilder.prototype.initialize = function initialize() {
 	if (!this.tiapp.ios['enable-launch-screen-storyboard'] || appc.version.lt(this.xcodeEnv.version, '7.0.0')) {
 		this.enableLaunchScreenStoryboard = false;
 		this.defaultLaunchScreenStoryboard = false;
-	}
-
-	if (!this.tiapp.ios.hasOwnProperty('use-new-build-system') && appc.version.lt(this.xcodeEnv.version, '10.0.0')) {
-		// if running on Xcode < 10, do not use the new build system by default
-		this.useNewBuildSystem = false;
-	} else if (this.tiapp.ios.hasOwnProperty('use-new-build-system')) {
-		// if explicitly set via tiapp.xml, go with that one
-		this.useNewBuildSystem = this.tiapp.ios['use-new-build-system'];
-	} else {
-		// if not set and Xcode >= 10, use the new build system
-		this.useNewBuildSystem = true;
 	}
 
 	if (this.enableLaunchScreenStoryboard && (fs.existsSync(path.join(this.projectDir, 'platform', 'ios', 'LaunchScreen.storyboard')) || fs.existsSync(path.join(this.projectDir, 'platform', 'iphone', 'LaunchScreen.storyboard')))) {
@@ -2707,14 +2676,6 @@ iOSBuilder.prototype.checkIfNeedToRecompile = function checkIfNeedToRecompile() 
 			return true;
 		}
 
-		// check if the deployType changed
-		if (this.deployType !== manifest.deployType) {
-			this.logger.info(__('Forcing rebuild: deployType changed since last build'));
-			this.logger.info('  ' + __('Was: %s', manifest.deployType));
-			this.logger.info('  ' + __('Now: %s', this.deployType));
-			return true;
-		}
-
 		// check if the titanium sdk version changed
 		if (fs.existsSync(this.xcodeProjectConfigFile)) {
 			// we have a previous build, see if the Titanium SDK changed
@@ -2852,17 +2813,9 @@ iOSBuilder.prototype.checkIfNeedToRecompile = function checkIfNeedToRecompile() 
 			return true;
 		}
 
-		// check if the use JavaScriptCore flag has changed
-		if (this.useJSCore !== manifest.useJSCore) {
-			this.logger.info(__('Forcing rebuild: use-jscore-framework flag changed since last build'));
-			this.logger.info('  ' + __('Was: %s', manifest.useJSCore));
-			this.logger.info('  ' + __('Now: %s', this.useJSCore));
-			return true;
-		}
-
 		// check if the use RunOnMainThread flag has changed
 		if (this.runOnMainThread !== manifest.runOnMainThread) {
-			this.logger.info(__('Forcing rebuild: run-on-main-thread flag changed since last build'));
+			this.logger.info(__('Forcing rebuild: use RunOnMainThread flag changed since last build'));
 			this.logger.info('  ' + __('Was: %s', manifest.runOnMainThread));
 			this.logger.info('  ' + __('Now: %s', this.runOnMainThread));
 			return true;
@@ -2870,7 +2823,7 @@ iOSBuilder.prototype.checkIfNeedToRecompile = function checkIfNeedToRecompile() 
 
 		// check if the use UserAutoLayout flag has changed
 		if (this.useAutoLayout !== manifest.useAutoLayout) {
-			this.logger.info(__('Forcing rebuild: use-autolayout flag changed since last build'));
+			this.logger.info(__('Forcing rebuild: use UserAutoLayout flag changed since last build'));
 			this.logger.info('  ' + __('Was: %s', manifest.useAutoLayout));
 			this.logger.info('  ' + __('Now: %s', this.useAutoLayout));
 			return true;
@@ -2878,17 +2831,9 @@ iOSBuilder.prototype.checkIfNeedToRecompile = function checkIfNeedToRecompile() 
 
 		// check if the use use-app-thinning flag has changed
 		if (this.useAppThinning !== manifest.useAppThinning) {
-			this.logger.info(__('Forcing rebuild: use-app-thinning flag changed since last build'));
+			this.logger.info(__('Forcing rebuild: use use-app-thinning flag changed since last build'));
 			this.logger.info('  ' + __('Was: %s', manifest.useAppThinning));
 			this.logger.info('  ' + __('Now: %s', this.useAppThinning));
-			return true;
-		}
-
-		// check if the use use-new-build-system flag has changed
-		if (this.useNewBuildSystem !== manifest.useNewBuildSystem) {
-			this.logger.info(__('Forcing rebuild: use-new-build-system flag changed since last build'));
-			this.logger.info('  ' + __('Was: %s', manifest.useNewBuildSystem));
-			this.logger.info('  ' + __('Now: %s', this.useNewBuildSystem));
 			return true;
 		}
 
@@ -2903,15 +2848,15 @@ iOSBuilder.prototype.checkIfNeedToRecompile = function checkIfNeedToRecompile() 
 		// next we check if any tiapp.xml values changed so we know if we need to reconstruct the main.m
 		// note: as soon as these tiapp.xml settings are written to an encrypted file instead of the binary, we can remove this whole section
 		const tiappSettings = {
-			name:        'project name',
-			id:          'app id',
-			analytics:   'analytics flag',
-			publisher:   'publisher',
-			url:         'url',
-			version:     'version',
-			description: 'description',
-			copyright:   'copyright',
-			guid:        'guid'
+			'name':        'project name',
+			'id':          'app id',
+			'analytics':   'analytics flag',
+			'publisher':   'publisher',
+			'url':         'url',
+			'version':     'version',
+			'description': 'description',
+			'copyright':   'copyright',
+			'guid':        'guid'
 		};
 		let changed = null;
 
@@ -2970,7 +2915,7 @@ iOSBuilder.prototype.createXcodeProject = function createXcodeProject(next) {
 	this.logger.info(__('Creating Xcode project'));
 
 	const appName = this.tiapp.name,
-		scrubbedAppName = this.sanitizedAppName(),
+		scrubbedAppName = appName.replace(/[-\W]/g, '_'),
 		srcFile = path.join(this.platformPath, 'iphone', 'Titanium.xcodeproj', 'project.pbxproj'),
 		contents = fs.readFileSync(srcFile).toString(),
 		xcodeProject = xcode.project(path.join(this.buildDir, this.tiapp.name + '.xcodeproj', 'project.pbxproj')),
@@ -3955,12 +3900,12 @@ iOSBuilder.prototype.writeInfoPlist = function writeInfoPlist() {
 		fbAppId = this.tiapp.properties && this.tiapp.properties['ti.facebook.appid'] && this.tiapp.properties['ti.facebook.appid'].value,
 		iconName = this.tiapp.icon.replace(/(.+)(\..*)$/, '$1'), // note: this is basically stripping the file extension
 		consts = {
-			__APPICON__: iconName,
-			__PROJECT_NAME__: this.tiapp.name,
-			__PROJECT_ID__: this.tiapp.id,
-			__URL__: this.tiapp.id,
-			__URLSCHEME__: this.tiapp.name.replace(/\./g, '_').replace(/ /g, '').toLowerCase(),
-			__ADDITIONAL_URL_SCHEMES__: fbAppId ? '<string>fb' + fbAppId + '</string>' : ''
+			'__APPICON__': iconName,
+			'__PROJECT_NAME__': this.tiapp.name,
+			'__PROJECT_ID__': this.tiapp.id,
+			'__URL__': this.tiapp.id,
+			'__URLSCHEME__': this.tiapp.name.replace(/\./g, '_').replace(/ /g, '').toLowerCase(),
+			'__ADDITIONAL_URL_SCHEMES__': fbAppId ? '<string>fb' + fbAppId + '</string>' : ''
 		},
 		resourceDir = path.join(this.projectDir, 'Resources'),
 		iphoneDir = path.join(resourceDir, 'iphone'),
@@ -4000,77 +3945,77 @@ iOSBuilder.prototype.writeInfoPlist = function writeInfoPlist() {
 		i18nLaunchScreens[path.basename(p)] = 1;
 	});
 
-	[ {
-		orientation: 'Portrait',
+	[{
+		'orientation': 'Portrait',
 		'minimum-system-version': '11.0',
-		name: 'Default-Portrait',
-		subtype: '2436h',
-		scale: [ '3x' ],
-		size: '{375, 812}'
+		'name': 'Default-Portrait',
+		'subtype': '2436h',
+		'scale': [ '3x' ],
+		'size': '{375, 812}'
 	},
 	{
-		orientation: 'Landscape',
+		'orientation': 'Landscape',
 		'minimum-system-version': '11.0',
-		name: 'Default-Landscape',
-		subtype: '2436h',
-		scale: [ '3x' ],
-		size: '{375, 812}'
+		'name': 'Default-Landscape',
+		'subtype': '2436h',
+		'scale': [ '3x' ],
+		'size': '{375, 812}'
 	},
 	{
-		orientation: 'Portrait',
+		'orientation': 'Portrait',
 		'minimum-system-version': '8.0',
-		name: 'Default-Portrait',
-		subtype: '736h',
-		scale: [ '3x' ],
-		size: '{414, 736}'
+		'name': 'Default-Portrait',
+		'subtype': '736h',
+		'scale': [ '3x' ],
+		'size': '{414, 736}'
 	},
 	{
-		orientation: 'Landscape',
+		'orientation': 'Landscape',
 		'minimum-system-version': '8.0',
-		name: 'Default-Landscape',
-		subtype: '736h',
-		scale: [ '3x' ],
-		size: '{414, 736}'
+		'name': 'Default-Landscape',
+		'subtype': '736h',
+		'scale': [ '3x' ],
+		'size': '{414, 736}'
 	},
 	{
-		orientation: 'Portrait',
+		'orientation': 'Portrait',
 		'minimum-system-version': '8.0',
-		name: 'Default',
-		subtype: '667h',
-		scale: [ '2x' ],
-		size: '{375, 667}'
+		'name': 'Default',
+		'subtype': '667h',
+		'scale': [ '2x' ],
+		'size': '{375, 667}'
 	},
 	{
-		orientation: 'Portrait',
+		'orientation': 'Portrait',
 		'minimum-system-version': '7.0',
-		name: 'Default',
-		scale: [ '2x', '1x' ],
-		size: '{320, 480}'
+		'name': 'Default',
+		'scale': [ '2x', '1x' ],
+		'size': '{320, 480}'
 	},
 	{
-		orientation: 'Portrait',
+		'orientation': 'Portrait',
 		'minimum-system-version': '7.0',
-		name: 'Default',
-		subtype: '568h',
-		scale: [ '2x' ],
-		size: '{320, 568}'
+		'name': 'Default',
+		'subtype': '568h',
+		'scale': [ '2x' ],
+		'size': '{320, 568}'
 	},
 	{
-		orientation: 'Portrait',
-		idiom: 'ipad',
+		'orientation': 'Portrait',
+		'idiom': 'ipad',
 		'minimum-system-version': '7.0',
-		name: 'Default-Portrait',
-		scale: [ '2x', '1x' ],
-		size: '{768, 1024}'
+		'name': 'Default-Portrait',
+		'scale': [ '2x', '1x' ],
+		'size': '{768, 1024}'
 	},
 	{
-		orientation: 'Landscape',
-		idiom: 'ipad',
+		'orientation': 'Landscape',
+		'idiom': 'ipad',
 		'minimum-system-version': '7.0',
-		name: 'Default-Landscape',
-		scale: [ '2x', '1x' ],
-		size: '{768, 1024}'
-	} ].forEach(function (asset) {
+		'name': 'Default-Landscape',
+		'scale': [ '2x', '1x' ],
+		'size': '{768, 1024}'
+	}].forEach(function (asset) {
 		asset.scale.some(function (scale) {
 			let key;
 			const basefilename = asset.name + (asset.subtype ? '-' + asset.subtype : ''),
@@ -4263,21 +4208,21 @@ iOSBuilder.prototype.writeMain = function writeMain() {
 	this.logger.info(__('Creating main.m'));
 
 	const consts = {
-			__PROJECT_NAME__:     this.tiapp.name,
-			__PROJECT_ID__:       this.tiapp.id,
-			__DEPLOYTYPE__:       this.deployType,
-			__SHOW_ERROR_CONTROLLER__:       this.showErrorController,
-			__APP_ID__:           this.tiapp.id,
-			__APP_ANALYTICS__:    String(this.tiapp.hasOwnProperty('analytics') ? !!this.tiapp.analytics : true),
-			__APP_PUBLISHER__:    this.tiapp.publisher,
-			__APP_URL__:          this.tiapp.url,
-			__APP_NAME__:         this.tiapp.name,
-			__APP_VERSION__:      this.tiapp.version,
-			__APP_DESCRIPTION__:  this.tiapp.description,
-			__APP_COPYRIGHT__:    this.tiapp.copyright,
-			__APP_GUID__:         this.tiapp.guid,
-			__APP_RESOURCE_DIR__: '',
-			__APP_DEPLOY_TYPE__:  this.buildType
+			'__PROJECT_NAME__':     this.tiapp.name,
+			'__PROJECT_ID__':       this.tiapp.id,
+			'__DEPLOYTYPE__':       this.deployType,
+			'__SHOW_ERROR_CONTROLLER__':       this.showErrorController,
+			'__APP_ID__':           this.tiapp.id,
+			'__APP_ANALYTICS__':    String(this.tiapp.hasOwnProperty('analytics') ? !!this.tiapp.analytics : true),
+			'__APP_PUBLISHER__':    this.tiapp.publisher,
+			'__APP_URL__':          this.tiapp.url,
+			'__APP_NAME__':         this.tiapp.name,
+			'__APP_VERSION__':      this.tiapp.version,
+			'__APP_DESCRIPTION__':  this.tiapp.description,
+			'__APP_COPYRIGHT__':    this.tiapp.copyright,
+			'__APP_GUID__':         this.tiapp.guid,
+			'__APP_RESOURCE_DIR__': '',
+			'__APP_DEPLOY_TYPE__':  this.buildType
 		},
 		contents = fs.readFileSync(path.join(this.platformPath, 'main.m')).toString().replace(/(__.+?__)/g, function (match, key) {
 			const s = consts.hasOwnProperty(key) ? consts[key] : key;
@@ -4309,9 +4254,8 @@ iOSBuilder.prototype.writeXcodeConfigFiles = function writeXcodeConfigFiles() {
 			'TI_SDK_DIR=' + this.platformPath.replace(this.titaniumSdkVersion, '$(TI_VERSION)'),
 			'TI_APPID=' + this.tiapp.id,
 			'JSCORE_LD_FLAGS=-weak_framework JavaScriptCore',
-			'TICORE_LD_FLAGS=-weak-lti_ios_profiler -weak-lti_ios_debugger -weak-lTiCore',
-			'OTHER_LDFLAGS[sdk=iphoneos*]=$(inherited) ' + (this.useJSCore ? '$(JSCORE_LD_FLAGS)' : '$(TICORE_LD_FLAGS)'),
-			'OTHER_LDFLAGS[sdk=iphonesimulator*]=$(inherited) ' + (this.useJSCore ? '$(JSCORE_LD_FLAGS)' : '$(TICORE_LD_FLAGS)'),
+			'OTHER_LDFLAGS[sdk=iphoneos*]=$(inherited) $(JSCORE_LD_FLAGS)'),
+			'OTHER_LDFLAGS[sdk=iphonesimulator*]=$(inherited) $(JSCORE_LD_FLAGS)'),
 			'OTHER_LDFLAGS[sdk=iphoneos9.*]=$(inherited) -weak_framework Contacts -weak_framework ContactsUI -weak_framework WatchConnectivity -weak_framework CoreSpotlight',
 			'OTHER_LDFLAGS[sdk=iphonesimulator9.*]=$(inherited) -weak_framework Contacts -weak_framework ContactsUI -weak_framework WatchConnectivity -weak_framework CoreSpotlight',
 			'#include "module"'
@@ -4432,7 +4376,7 @@ iOSBuilder.prototype.copyTitaniumiOSFiles = function copyTitaniumiOSFiles() {
 	this.logger.info(__('Copying Titanium iOS files'));
 
 	const nameChanged = !this.previousBuildManifest || this.tiapp.name !== this.previousBuildManifest.name,
-		name = this.sanitizedAppName(),
+		name = this.tiapp.name.replace(/[-\W]/g, '_'),
 		extRegExp = /\.(c|cpp|h|m|mm)$/,
 
 		// files to watch for while copying
@@ -4712,7 +4656,7 @@ iOSBuilder.prototype.cleanXcodeDerivedData = function cleanXcodeDerivedData(next
 	}
 
 	const exe = this.xcodeEnv.executables.xcodebuild,
-		args = [ 'clean', '-scheme', this.sanitizedAppName() ];
+		args = [ 'clean' ];
 	let tries = 0,
 		lastErr = null,
 		done = false;
@@ -5514,7 +5458,7 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 								const buf = [];
 								this.pack()
 									.on('data', function (bytes) {
-										buf.push(Buffer.from(bytes));
+										buf.push(new Buffer(bytes)); // eslint-disable-line security/detect-new-buffer
 									})
 									.on('end', function (err) {
 										if (err) {
@@ -5637,12 +5581,12 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 
 				if (!info.i18n) {
 					const img = {
-						extent: meta.extent,
-						idiom: meta.idiom,
-						filename: filename,
+						'extent': meta.extent,
+						'idiom': meta.idiom,
+						'filename': filename,
 						'minimum-system-version': meta.minSysVer,
-						orientation: meta.orientation,
-						scale: meta.scale + 'x'
+						'orientation': meta.orientation,
+						'scale': meta.scale + 'x'
 					};
 					meta.subtype && (img.subtype = meta.subtype);
 					launchImageSet.images.push(img);
@@ -5818,62 +5762,54 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 					try {
 						this.cli.createHook('build.ios.copyResource', this, function (from, to, cb) {
 							const originalContents = fs.readFileSync(from).toString();
-							// Populate an initial object to pass in. This won't have modified
-							// contents or symbols populated, which it used to at this point,
-							// but I don't think any plugin relied on that behavior, while
-							// hyperloop would clobber the contents if we didn't do the mods
-							// inside the compile hook.
-							const r = {
-								original: originalContents,
-								contents: originalContents,
-								symbols: []
-							};
+							// parse the AST
+							const r = jsanalyze.analyzeJs(originalContents, { minify: this.minifyJS, filename: from });
+
+							// we want to sort by the "to" filename so that we correctly handle file overwriting
+							this.tiSymbols[to] = r.symbols;
+
+							// Now transpile too!
 							this.cli.createHook('build.ios.compileJsFile', this, function (r, from, to, cb2) {
-								// Read the possibly modified file contents
-								const source = r.contents;
-								// Analyze Ti API usage, possibly also minify/transpile
-								const analyzeOptions = {
+								const dir = path.dirname(to);
+								fs.existsSync(dir) || wrench.mkdirSyncRecursive(dir);
+
+								this.unmarkBuildDirFile(to);
+
+								// generate our transpile target based on jscore
+								const presets = [[ env, {
+									'targets': {
+										'ios': this.minSupportedIosSdk // Target our min ios version
+									}
+								}]];
+								const result = babel.transform(r.contents, {
 									filename: from,
-									minify: this.minifyJS,
-									transpile: this.transpile,
-									resourcesDir: this.xcodeAppDir
-								};
-								// generate our transpile target based on tijscore/jscore
-								if (this.useJSCore) {
-									analyzeOptions.targets = { ios: this.minSupportedIosSdk }; // if using jscore, target our min ios version
-								} // if not jscore, just transpile everything down (no target)
+									presets: presets
+								});
+								const newContents = result.code;
 
-								try {
-									const modified = jsanalyze.analyzeJs(source, analyzeOptions);
-									const newContents = modified.contents;
-
-									// we want to sort by the "to" filename so that we correctly handle file overwriting
-									this.tiSymbols[to] = modified.symbols;
-
-									const dir = path.dirname(to);
-									fs.existsSync(dir) || wrench.mkdirSyncRecursive(dir);
-
+								// if we didn't change the contents any...
+								if (newContents === originalContents) {
+									if (this.copyFileSync(from, to)) { // copy/symlink if necessary
+										this.jsFilesChanged = true;
+									} else { // possibly no need to copy/change, so we skipped entirely!
+										this.logger.trace(__('No change, skipping %s', to.cyan));
+									}
+								} else {
+									// contents definitely changed from source file...
 									const exists = fs.existsSync(to);
-									// dest doesn't exist, or new contents differs from existing dest file
+									// check if dest file already exists and has same modified contents
 									if (!exists || newContents !== fs.readFileSync(to).toString()) {
+										// dest doesn't exist or it's different, so let's write the new file
 										this.logger.debug(__('Copying and minifying %s => %s', from.cyan, to.cyan));
 										exists && fs.unlinkSync(to);
 										fs.writeFileSync(to, newContents);
 										this.jsFilesChanged = true;
 									} else {
+										// so we changed from the source file, but we already wrote teh modified contents before and that didn't change
 										this.logger.trace(__('No change, skipping %s', to.cyan));
 									}
-									cb2();
-								} catch (err) {
-									err.message.split('\n').forEach(this.logger.error);
-									if (err.codeFrame) { // if we have a nicely formatted pointer to syntax error from babel, use it!
-										this.logger.log(err.codeFrame);
-									}
-									this.logger.log();
-									process.exit(1);
-								} finally {
-									this.unmarkBuildDirFile(to);
 								}
+								cb2();
 							})(r, from, to, cb);
 						})(info.src, info.dest, next);
 					} catch (ex) {
@@ -6103,11 +6039,11 @@ iOSBuilder.prototype.processTiSymbols = function processTiSymbols() {
 	this.logger.info(__('Processing Titanium symbols'));
 
 	const namespaces = {
-			analytics: 1,
-			api: 1,
-			network: 1,
-			platform: 1,
-			ui: 1
+			'analytics': 1,
+			'api': 1,
+			'network': 1,
+			'platform': 1,
+			'ui': 1
 		},
 		symbols = {};
 
@@ -6211,9 +6147,6 @@ iOSBuilder.prototype.processTiSymbols = function processTiSymbols() {
 		if (this.useAutoLayout) {
 			contents += '\n#define TI_USE_AUTOLAYOUT';
 		}
-		if (this.useJSCore) {
-			contents += '\n#define USE_JSCORE_FRAMEWORK';
-		}
 	} else {
 		// build the defines.h file
 		contents = [
@@ -6246,9 +6179,6 @@ iOSBuilder.prototype.processTiSymbols = function processTiSymbols() {
 			'#endif'
 		);
 
-		if (this.useJSCore) {
-			contents.push('#define USE_JSCORE_FRAMEWORK');
-		}
 		if (!this.runOnMainThread) {
 			contents.push('#define TI_USE_KROLL_THREAD');
 		}
@@ -6560,12 +6490,11 @@ iOSBuilder.prototype.invokeXcodeBuild = function invokeXcodeBuild(next) {
 		this.target === 'dist-appstore' || this.target === 'dist-adhoc' ? 'archive' : 'build',
 		'-target', this.tiapp.name,
 		'-configuration', this.xcodeTarget,
-		'-scheme', this.sanitizedAppName(),
+		'-scheme', this.tiapp.name.replace(/[-\W]/g, '_'),
 		'-derivedDataPath', path.join(this.buildDir, 'DerivedData'),
-		'-UseNewBuildSystem=' + (this.useNewBuildSystem ? 'YES' : 'NO'),
 		'OBJROOT=' + path.join(this.buildDir, 'build', 'Intermediates'),
 		'SHARED_PRECOMPS_DIR=' + path.join(this.buildDir, 'build', 'Intermediates', 'PrecompiledHeaders'),
-		'SYMROOT=' + path.join(this.buildDir, 'build', 'Products'),
+		'SYMROOT=' + path.join(this.buildDir, 'build', 'Products')
 	];
 
 	if (this.simHandle) {
@@ -6585,7 +6514,7 @@ iOSBuilder.prototype.invokeXcodeBuild = function invokeXcodeBuild(next) {
 				TMPDIR: process.env.TMPDIR,
 				HOME: process.env.HOME,
 				PATH: process.env.PATH,
-				TITANIUM_CLI_XCODEBUILD: 'Enjoy hacking? https://www.axway.com/en/career'
+				TITANIUM_CLI_XCODEBUILD: 'Enjoy hacking? http://jobs.appcelerator.com/'
 			}
 		},
 		next
@@ -6598,15 +6527,6 @@ iOSBuilder.prototype.writeBuildManifest = function writeBuildManifest(next) {
 		fs.existsSync(this.buildManifestFile) && fs.unlinkSync(this.buildManifestFile);
 		fs.writeFile(this.buildManifestFile, JSON.stringify(this.buildManifest = manifest, null, '\t'), cb);
 	})(this.currentBuildManifest, next);
-};
-
-/**
- * Returns the sanitized app name to replace invalid characters.
- *
- * @returns {String}
- */
-iOSBuilder.prototype.sanitizedAppName = function sanitizedAppName() {
-	return this.tiapp.name.replace(/[-\W]/g, '_');
 };
 
 function sha1(value) {

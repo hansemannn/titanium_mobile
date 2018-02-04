@@ -53,30 +53,13 @@ NSDictionary *TiBindingTiValueToNSDictionary(TiContextRef jsContext, TiValueRef 
 
   // if this looks like a JS Error object, get the message
   if ([dict objectForKey:@"line"] != nil && [dict objectForKey:@"column"] != nil) {
-    TiStringRef messageKeyRef = TiStringCreateWithUTF8CString("message");
-    TiStringRef stackKeyRef = TiStringCreateWithUTF8CString("stack");
-    TiValueRef messageRef = TiObjectGetProperty(jsContext, obj, messageKeyRef, NULL);
-    TiValueRef stackRef = TiObjectGetProperty(jsContext, obj, stackKeyRef, NULL);
-
-    id message = TiBindingTiValueToNSObject(jsContext, messageRef);
-    if (message && ![message isEqual:[NSNull null]]) {
-      [dict setObject:message forKey:@"message"];
+    TiStringRef prop = TiStringCreateWithUTF8CString("message");
+    TiValueRef val = TiObjectGetProperty(jsContext, obj, prop, NULL);
+    id value = TiBindingTiValueToNSObject(jsContext, val);
+    if (value && ![value isEqual:[NSNull null]]) {
+      [dict setObject:value forKey:@"message"];
     }
-    TiStringRelease(messageKeyRef);
-
-    id stack = TiBindingTiValueToNSObject(jsContext, stackRef);
-    if (stack && ![stack isEqual:[NSNull null]]) {
-
-      // lets re-format the stack similar to node.js
-      stack = [stack stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"file://%@", [[NSBundle mainBundle] bundlePath]] withString:@"("];
-      stack = [stack stringByReplacingOccurrencesOfString:@"\n" withString:@")\n    at "];
-      stack = [stack stringByReplacingOccurrencesOfString:@"])" withString:@"]"];
-      stack = [stack stringByReplacingOccurrencesOfString:@"@(" withString:@"("];
-      stack = [NSString stringWithFormat:@"    at %@)", stack];
-
-      [dict setObject:stack forKey:@"stack"];
-    }
-    TiStringRelease(stackKeyRef);
+    TiStringRelease(prop);
   }
 
   TiPropertyNameArrayRelease(props);
@@ -84,25 +67,23 @@ NSDictionary *TiBindingTiValueToNSDictionary(TiContextRef jsContext, TiValueRef 
   return [dict autorelease];
 }
 
-// TODO: Remove once the minimum target is iOS 9
-#ifdef USE_JSCORE_FRAMEWORK
-BOOL TiValueIsArray(JSContextRef js_context_ref, JSValueRef js_value_ref)
+BOOL TiValueIsArray(TiContextRef js_context_ref, TiValueRef js_value_ref)
 {
-  JSStringRef property_name = JSStringCreateWithUTF8CString("Array");
-  JSObjectRef js_object_ref = (JSObjectRef)JSObjectGetProperty(js_context_ref, JSContextGetGlobalObject(js_context_ref), property_name, NULL);
-  JSStringRelease(property_name);
-  BOOL isArray = JSValueIsInstanceOfConstructor(js_context_ref, js_value_ref, js_object_ref, NULL);
+  TiStringRef property_name = TiStringCreateWithUTF8CString("Array");
+  TiObjectRef js_object_ref = (TiObjectRef)TiObjectGetProperty(js_context_ref, TiContextGetGlobalObject(js_context_ref), property_name, NULL);
+  TiStringRelease(property_name);
+  BOOL isArray = TiValueIsInstanceOfConstructor(js_context_ref, js_value_ref, js_object_ref, NULL);
   return isArray;
 }
-BOOL TiValueIsDate(JSContextRef js_context_ref, JSValueRef js_value_ref)
+
+BOOL TiValueIsDate(TiContextRef js_context_ref, TiValueRef js_value_ref)
 {
-  JSStringRef property_name = JSStringCreateWithUTF8CString("Date");
-  JSObjectRef js_object_ref = (JSObjectRef)JSObjectGetProperty(js_context_ref, JSContextGetGlobalObject(js_context_ref), property_name, NULL);
-  JSStringRelease(property_name);
-  BOOL isDate = JSValueIsInstanceOfConstructor(js_context_ref, js_value_ref, js_object_ref, NULL);
+  TiStringRef property_name = TiStringCreateWithUTF8CString("Date");
+  TiObjectRef js_object_ref = (TiObjectRef)TiObjectGetProperty(js_context_ref, TiContextGetGlobalObject(js_context_ref), property_name, NULL);
+  TiStringRelease(property_name);
+  BOOL isDate = TiValueIsInstanceOfConstructor(js_context_ref, js_value_ref, js_object_ref, NULL);
   return isDate;
 }
-#endif
 
 //
 // function for converting a TiValueRef into an NSObject* (as ID)
@@ -278,16 +259,12 @@ TiValueRef TiBindingTiValueFromNSObject(TiContextRef jsContext, NSObject *obj)
   if ([obj isKindOfClass:[NSDictionary class]]) {
     return TiBindingTiValueFromNSDictionary(jsContext, (NSDictionary *)obj);
   }
-
-  // Handle native errors
   if ([obj isKindOfClass:[NSException class]]) {
     TiStringRef jsString = TiStringCreateWithCFString((CFStringRef)[(NSException *)obj reason]);
     TiValueRef result = TiValueMakeString(jsContext, jsString);
     TiStringRelease(jsString);
     TiObjectRef excObject = TiObjectMakeError(jsContext, 1, &result, NULL);
     NSDictionary *details = [(NSException *)obj userInfo];
-
-    // Add "nativeReason" key
     NSString *subreason = [details objectForKey:kTiExceptionSubreason];
     if (subreason != nil) {
       TiStringRef propertyName = TiStringCreateWithUTF8CString("nativeReason");
@@ -296,27 +273,6 @@ TiValueRef TiBindingTiValueFromNSObject(TiContextRef jsContext, NSObject *obj)
       TiStringRelease(propertyName);
       TiStringRelease(valueString);
     }
-
-    // Add "nativeStack" key
-    NSArray<NSString *> *nativeStack = [(NSException *)obj callStackSymbols];
-    if (nativeStack != nil) {
-      NSMutableArray<NSString *> *formattedStackTrace = [[[NSMutableArray alloc] init] autorelease];
-      NSUInteger exceptionStackTraceLength = [nativeStack count];
-
-      // re-size stack trace and format results. Starting at index = 4 to not include the script-error API's
-      for (NSInteger i = 3; i < (exceptionStackTraceLength >= 20 ? 20 : exceptionStackTraceLength); i++) {
-        NSString *line = [[nativeStack objectAtIndex:i] stringByReplacingOccurrencesOfString:@"     " withString:@""];
-        [formattedStackTrace addObject:line];
-      }
-
-      TiStringRef propertyName = TiStringCreateWithUTF8CString("nativeStack");
-      TiStringRef valueString = TiStringCreateWithCFString((CFStringRef)[formattedStackTrace componentsJoinedByString:@"\n"]);
-      TiObjectSetProperty(jsContext, excObject, propertyName, TiValueMakeString(jsContext, valueString), kTiPropertyAttributeReadOnly, NULL);
-      TiStringRelease(propertyName);
-      TiStringRelease(valueString);
-    }
-
-    // Add "nativeLocation" key
     NSString *location = [details objectForKey:kTiExceptionLocation];
     if (location != nil) {
       TiStringRef propertyName = TiStringCreateWithUTF8CString("nativeLocation");
