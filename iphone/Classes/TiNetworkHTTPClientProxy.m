@@ -65,13 +65,12 @@ extern NSString *const TI_APPLICATION_GUID;
   ENSURE_ARRAY(args);
 
   if ([httpRequest response] != nil) {
-    APSHTTPResponseState curState = [[httpRequest response] readyState];
-    if ((curState == APSHTTPResponseStateUnsent) || (curState == APSHTTPResponseStateDone)) {
-      //Clear out the client + delegate and continue
+    if ([httpRequest isReady]) {
+      // Clear the client + delegate and continue
       RELEASE_TO_NIL(httpRequest);
       RELEASE_TO_NIL(apsConnectionDelegate);
     } else {
-      NSLog(@"[ERROR] open can only be called if client is disconnected(0) or done(4). Current state is %d ", curState);
+      NSLog(@"[ERROR] The \"open\" method can only be called if client is disconnected(0) or done(4). Current state is: %d ", [[httpRequest response] readyState]);
       return;
     }
   }
@@ -82,7 +81,7 @@ extern NSString *const TI_APPLICATION_GUID;
   [httpRequest setMethod:method];
   [httpRequest setUrl:url];
 
-  // twitter specifically disallows X-Requested-With so we only add this normal
+  // Some services specifically disallow X-Requested-With so we only add this normal
   // XHR header if not going to twitter. however, other services generally expect
   // this header to indicate an XHR request (such as RoR)
   if ([[url absoluteString] rangeOfString:@"twitter.com"].location == NSNotFound) {
@@ -109,9 +108,8 @@ extern NSString *const TI_APPLICATION_GUID;
     return;
   }
   if ([httpRequest response] != nil) {
-    APSHTTPResponseState curState = [[httpRequest response] readyState];
-    if (curState != APSHTTPResponseStateUnsent) {
-      NSLog(@"[ERROR] send can only be called if client is disconnected(0). Current state is %d ", curState);
+    if (![httpRequest isReady]) {
+      NSLog(@"[ERROR] send can only be called if client is disconnected(0) or done(4). Current state is: %d ", [[httpRequest response] readyState]);
       return;
     }
   }
