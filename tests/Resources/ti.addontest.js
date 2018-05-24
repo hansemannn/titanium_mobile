@@ -22,7 +22,7 @@ describe('Error', function () {
 			ex.should.have.readOnlyProperty('message').which.is.a.String;
 			// has "stack" property
 			ex.should.have.readOnlyProperty('stack').which.is.a.String;
-            // does not have native stack trace
+			// does not have native stack trace
 			ex.should.not.have.property('nativeStack');
 		}
 	});
@@ -35,9 +35,9 @@ describe('Error', function () {
 			// has "message" property
 			ex.should.have.readOnlyProperty('message').which.is.a.String;
 			// has "stack" property
-            ex.should.have.readOnlyProperty('stack').which.is.a.String;
-            // has special "nativeStack" property for native stacktrace
-            // TODO: Should we make this an array instead? 
+			ex.should.have.readOnlyProperty('stack').which.is.a.String;
+			// has special "nativeStack" property for native stacktrace
+			// TODO: Should we make this an array instead? 
 			ex.should.have.property('nativeStack').which.is.a.String;
 		}
 	});
