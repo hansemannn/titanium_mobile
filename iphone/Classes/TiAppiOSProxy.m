@@ -25,7 +25,7 @@
 #endif
 
 #ifdef USE_TI_APPIOSSEARCHQUERY
-#import "TiAppiOSSearchQueryProxy.h"
+#import "Titanium-Swift.h"
 #endif
 
 #import <CoreLocation/CLCircularRegion.h>
