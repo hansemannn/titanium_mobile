@@ -398,6 +398,30 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	}
 
 	// clang-format off
+	@Kroll.setProperty
+	public void setExtendSafeArea(boolean extendSafeArea)
+	// clang-format on
+	{
+		if (!Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			return;
+		}
+
+		Activity activity = getWindowActivity();
+		if (activity != null) {
+			WindowManager.LayoutParams attributes = activity.getWindow().getAttributes();
+
+			if (extendSafeArea) {
+				attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+			} else {
+				attributes.layoutInDisplayCutoutMode =
+					WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+			}
+
+			activity.getWindow().setAttributes(attributes);
+		}
+	}
+
+	// clang-format off
 	@Kroll.method
 	@Kroll.setProperty
 	public void setSustainedPerformanceMode(boolean mode)
