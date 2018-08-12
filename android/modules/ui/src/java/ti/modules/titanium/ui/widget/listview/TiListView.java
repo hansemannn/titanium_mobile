@@ -43,6 +43,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Pair;
@@ -822,6 +825,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener
 		}
 	}
 
+	public void setSeparatorInsets(HashMap separatorInsets) {
+		KrollDict insets = new KrollDict(separatorInsets);
+
+		int insetLeft = insets.optInt("left", 0);
+		int insetRight = insets.optInt("right", 0);
+
+		listView.setDivider(new InsetDrawable(listView.getDivider(), insetLeft, 0, insetRight, 0));
+	}
+
 	private void setSeparatorColor(String color)
 	{
 		int sepColor = TiColorHelper.parseColor(color);
@@ -831,7 +843,10 @@ public class TiListView extends TiUIView implements OnSearchChangeListener
 		} else {
 			dHeight = dividerHeight;
 		}
-		listView.setDivider(new ColorDrawable(sepColor));
+		
+		LayerDrawable finalDrawable = new LayerDrawable(new Drawable[] { listView.getDivider(), new ColorDrawable(sepColor) });
+
+		listView.setDivider(finalDrawable);
 		listView.setDividerHeight(dHeight);
 	}
 

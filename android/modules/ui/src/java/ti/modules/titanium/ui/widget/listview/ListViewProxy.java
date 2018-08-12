@@ -499,6 +499,18 @@ public class ListViewProxy extends TiViewProxy
 		}
 	}
 
+	// clang-format off
+	@Kroll.method
+	@Kroll.setProperty
+	public void setListSeparatorInsets(Object listSeparatorInsets)
+	// clang-format on
+	{
+		TiListView listView = (TiListView) peekView();
+		if (listView != null && listSeparatorInsets instanceof HashMap) {
+			listView.setSeparatorInsets((HashMap<String, Integer>) listSeparatorInsets);
+		}
+	}
+
 	private ListSectionProxy[] handleSections()
 	{
 		if (peekView() == null && getParent() != null) {
