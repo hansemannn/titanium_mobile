@@ -34,6 +34,7 @@
  @param args Unused.
  */
 - (void)blur:(id)args;
+
 /**
  Tells if this proxy is currently focused
  */
@@ -193,6 +194,24 @@ enum {
  @param arg Ignored.
  */
 - (void)removeAllChildren:(id)arg;
+
+/**
+ Tells the view proxy to insert a view at the specified position.
+ @param args An object containing the "view" and the "position" to insert it.
+ */
+- (void)insertAt:(id)args;
+
+/**
+ Tells the view proxy to insert an array of views at the specified position.
+ @param args An object containing the "views" and the "position" to insert them.
+ */
+- (void)insertViewsAt:(id)args;
+
+/**
+ Tells the view proxy to replace a view at the specified index.
+ @param args An object containing the "view" and the "position" to replace it.
+ */
+- (void)replaceAt:(id)args;
 
 /**
  Tells the view proxy to set visibility on a child proxy to _YES_.

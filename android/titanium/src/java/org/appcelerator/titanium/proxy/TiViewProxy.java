@@ -676,6 +676,31 @@ public abstract class TiViewProxy extends KrollProxy
 	}
 
 	/**
+	 * Adds an array of childs to this view proxy in the specified position. 
+	 * @param params A Dictionary containing an array of TiViewProxy instances for the view and an int for the position
+	 * @module.api
+	 */
+	@Kroll.method
+	public void insertViewsAt(Object params) {
+		Object[] views = (TiViewProxy) options.get("views");
+		Integer position = (Integer) options.get("position");
+
+		if (args instanceof Object[]) {
+			for (Object arg : (Object[]) args) {
+				if (arg instanceof TiViewProxy) {
+					KrollDict insertParams = new KrollDict();
+					insertParams.put("view", arg);
+					insertParams.put("position", position++);
+
+					insertAt(insertParams);
+				} else {
+					Log.w(TAG, "insertViewsAt() unsupported array object: " + arg.getClass().getSimpleName());
+				}
+			}
+		}
+	}
+
+	/**
 	 * Removes a view from this view proxy, releasing the underlying native view if it exists.
 	 * @param child The child to remove.
 	 * @module.api

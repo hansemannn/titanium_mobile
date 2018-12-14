@@ -268,6 +268,23 @@ static NSArray *touchEventsArray;
   [self add:args];
 }
 
+- (void)insertViewsAt:(id)args
+{
+  ENSURE_SINGLE_ARG(args, NSDictionary);
+  ENSURE_UI_THREAD(insertViewsAt, args);
+  
+  NSUInteger insertIndex = [TiUtils intValue:@"position" properties:args];
+  id arg = args[@"views"];
+  
+  if ([arg isKindOfClass:[TiViewProxy class]]) {
+    [self add:arg];
+  } else if ([arg isKindOfClass:[NSArray class]]) {
+    for (id newViewProxy in arg) {
+      [self add:@{ @"view": newViewProxy, @"position": @(insertIndex++) }];
+    }
+  }
+}
+
 - (void)replaceAt:(id)args
 {
   if ([self isKindOfClass:[TiUIWindowProxy class]] && [TiUtils isIOSVersionOrGreater:@"11.0"]) {
