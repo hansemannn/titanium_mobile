@@ -4984,7 +4984,7 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 	}
 
 	this.logger.info(__('Analyzing Resources directory'));
-	walk(path.join(this.titaniumSdkPath, 'common', 'Resources'), this.xcodeAppDir);
+	walk(path.join(this.titaniumSdkPath, 'common', 'Resources', 'ios'), this.xcodeAppDir);
 	walk(path.join(this.projectDir, 'Resources'),           this.xcodeAppDir, platformsRegExp);
 	walk(path.join(this.projectDir, 'Resources', 'iphone'), this.xcodeAppDir);
 	walk(path.join(this.projectDir, 'Resources', 'ios'),    this.xcodeAppDir);
@@ -5806,7 +5806,18 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 				},
 
 				function generateSemanticColors() {
-					const colorsFile = path.join(this.projectDir, 'Resources', 'iphone', 'semantic.colors.json');
+					let colorsFile = path.join(this.projectDir, 'Resources', 'iphone', 'semantic.colors.json');
+
+					if (!fs.existsSync(colorsFile)) {
+						// Fallback to root of Resources folder for Classic applications
+						colorsFile = path.join(this.projectDir, 'Resources', 'semantic.colors.json');
+					}
+
+					if (!fs.existsSync(colorsFile)) {
+						this.logger.debug(__('Skipping colorset generation as "semantic.colors.json" file does not exist'));
+						return;
+					}
+
 					const assetCatalog = path.join(this.buildDir, 'Assets.xcassets');
 					const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
 
@@ -5829,9 +5840,6 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 						} : null;
 					}
 
-					if (!fs.existsSync(colorsFile)) {
-						return;
-					}
 					const colors = fs.readJSONSync(colorsFile);
 
 					for (const [ color, colorValue ] of Object.entries(colors)) {
@@ -5974,7 +5982,7 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 			series(this, [
 				function processJSFiles(next) {
 					this.logger.info(__('Processing JavaScript files'));
-					const sdkCommonFolder = path.join(this.titaniumSdkPath, 'common', 'Resources');
+					const sdkCommonFolder = path.join(this.titaniumSdkPath, 'common', 'Resources', 'ios');
 					const task = new ProcessJsTask({
 						inputFiles: Object.keys(jsFiles).map(relPath => jsFiles[relPath].src),
 						incrementalDirectory: path.join(this.buildDir, 'incremental', 'process-js'),
