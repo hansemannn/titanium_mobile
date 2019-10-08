@@ -741,21 +741,7 @@
 }
 - (void)viewDidDisappear:(BOOL)animated
 {
-  if (isModal && closing) {
-    [self windowDidClose];
-  }
-}
-
-- (void)presentationControllerWillDismiss:(UIPresentationController *)presentationController
-{
-  if (isModal) {
-    [self windowWillClose];
-  }
-}
-
-- (void)presentationControllerDidDismiss:(UIPresentationController *)presentationController
-{
-  if (isModal) {
+  if (isModal && (closing || !forceModal)) {
     [self windowDidClose];
   }
 }
