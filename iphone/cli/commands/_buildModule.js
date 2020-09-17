@@ -29,7 +29,8 @@ const appc = require('node-appc'),
 	temp = require('temp'),
 	util = require('util'),
 	__ = appc.i18n(__dirname).__,
-	series = appc.async.series;
+	series = appc.async.series,
+	xcode = require('xcode');
 
 function iOSModuleBuilder() {
 	Builder.apply(this, arguments);
@@ -46,6 +47,7 @@ iOSModuleBuilder.prototype.validate = function validate(logger, config, cli) {
 	this.moduleId      = cli.manifest.moduleid;
 	this.moduleName    = cli.manifest.name;
 	this.moduleIdAsIdentifier = this.scrubbedName(this.moduleId);
+	this.isMacOSEnabled  = this.detectMacOSTarget();
 	this.moduleVersion = cli.manifest.version;
 	this.moduleGuid    = cli.manifest.guid;
 	this.isFramework   = fs.existsSync(path.join(this.projectDir, 'Info.plist')); // TODO: There MUST be a better way to determine if it's a framework (Swift)
@@ -53,6 +55,7 @@ iOSModuleBuilder.prototype.validate = function validate(logger, config, cli) {
 	this.buildOnly     = cli.argv['build-only'];
 	this.xcodeEnv      = null;
 	const sdkModuleAPIVersion = cli.sdk.manifest && cli.sdk.manifest.moduleAPIVersion && cli.sdk.manifest.moduleAPIVersion['iphone'];
+
 	if (this.manifest.apiversion && sdkModuleAPIVersion && this.manifest.apiversion !== sdkModuleAPIVersion) {
 		logger.error(__('The module manifest apiversion is currently set to %s', this.manifest.apiversion));
 		logger.error(__('Titanium SDK %s iOS module apiversion is at %s', this.titaniumSdkVersion, sdkModuleAPIVersion));
@@ -84,6 +87,29 @@ iOSModuleBuilder.prototype.validate = function validate(logger, config, cli) {
 			finished();
 		}.bind(this));
 	}.bind(this);
+};
+
+iOSModuleBuilder.prototype.detectMacOSTarget = function detectMacOSTarget() {
+	const pbxFilePath = path.join(this.projectDir, `${this.moduleName}.xcodeproj`, 'project.pbxproj');
+
+	if (!fs.existsSync(pbxFilePath)) {
+		this.logger.warn(__(`The Xcode project does not contain the default naming scheme. This is required to detect macOS targets in your module.\nPlease rename your Xcode project to "${this.moduleName}.xcodeproj"`));
+		return false;
+	}
+
+	let isMacOSEnabled = false;
+	const proj = xcode.project(pbxFilePath).parseSync();
+	const configurations = proj.hash.project.objects.XCBuildConfiguration;
+
+	for (const key of Object.keys(proj.hash.project.objects.XCBuildConfiguration)) {
+		const configuration = configurations[key];
+		if (typeof configuration === 'object' && configuration.buildSettings.SUPPORTS_MACCATALYST) {
+			isMacOSEnabled = configuration.buildSettings.SUPPORTS_MACCATALYST === 'YES';
+			break;
+		}
+	}
+
+	return isMacOSEnabled;
 };
 
 iOSModuleBuilder.prototype.run = function run(logger, config, cli, finished) {
@@ -479,7 +505,7 @@ iOSModuleBuilder.prototype.buildModule = function buildModule(next) {
 		return args;
 	}.bind(this);
 
-	this.cli.env.getOSInfo(function (osInfo) {
+	this.cli.env.getOSInfo(osInfo => {
 		const macOsVersion = osInfo.osver;
 
 		// 1. Create a build for the simulator
@@ -488,8 +514,13 @@ iOSModuleBuilder.prototype.buildModule = function buildModule(next) {
 			xcodebuildHook(xcBuild, xcodeBuildArgumentsForTarget('iphoneos'), opts, 'xcode-dist', () => {
 				const osVersionParts = macOsVersion.split('.').map(n => parseInt(n));
 				if (osVersionParts[0] > 10 || (osVersionParts[0] === 10 && osVersionParts[1] >= 15)) {
-					// 3. Create a build for the maccatalyst
-					xcodebuildHook(xcBuild, xcodeBuildArgumentsForTarget('macosx'), opts, 'xcode-macos', next);
+					// 3. Create a build for the mac-catalyst if enabled
+					if (this.isMacOSEnabled) {
+						xcodebuildHook(xcBuild, xcodeBuildArgumentsForTarget('macosx'), opts, 'xcode-macos', next);
+					} else {
+						this.logger.info(__('macOS support disabled in Xcode project. Skipping …'));
+						next();
+					}
 				} else {
 					this.logger.warn(__('Ignoring build for mac as mac target is < 10.15'));
 					next();
@@ -558,15 +589,17 @@ iOSModuleBuilder.prototype.createUniversalBinary = function createUniversalBinar
 		args.push('-headers');
 		args.push(headerPath);
 	}
-	lib = findLib('macosx');
-	if (lib instanceof Error) {
-		this.logger.warn(__('The module is missing 64-bit support of macos. Ignoring mac target for this module...'));
-	} else {
-		args.push(buildType);
-		args.push(lib);
-		if (!this.isFramework) {
-			args.push('-headers');
-			args.push(headerPath);
+	if (this.isMacOSEnabled) {
+		lib = findLib('macosx');
+		if (lib instanceof Error) {
+			this.logger.warn(__('The module is missing 64-bit support of macos. Ignoring mac target for this module...'));
+		} else {
+			args.push(buildType);
+			args.push(lib);
+			if (!this.isFramework) {
+				args.push('-headers');
+				args.push(headerPath);
+			}
 		}
 	}
 
@@ -646,13 +679,15 @@ iOSModuleBuilder.prototype.verifyBuildArch = function verifyBuildArch(next) {
 		// buildArchs.add('arm64'); // Don't include as we traditionally meant 'arm64' to be ios device arm64 (not sim!)
 	}
 
-	lib = findLib('ios-arm64_x86_64-maccatalyst');
-	if (lib instanceof Error) {
-		this.logger.warn(__('The module is missing maccatalyst support.'));
-	// } else {
-		// TODO: Do we want to add these here? Traditionally they were assumed to be arm64 ios device and x86_64 ios sim!
-		// buildArchs.add('x86_64');
-		// buildArchs.add('arm64');
+	if (this.isMacOSEnabled) {
+		lib = findLib('ios-arm64_x86_64-maccatalyst');
+		if (lib instanceof Error) {
+			this.logger.warn(__('The module is missing maccatalyst support.'));
+		// } else {
+			// TODO: Do we want to add these here? Traditionally they were assumed to be arm64 ios device and x86_64 ios sim!
+			// buildArchs.add('x86_64');
+			// buildArchs.add('arm64');
+		}
 	}
 
 	const manifestArchs = new Set(this.manifest.architectures.split(' '));
