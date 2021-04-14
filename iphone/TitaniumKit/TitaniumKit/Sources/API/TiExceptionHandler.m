@@ -156,7 +156,17 @@ static NSUncaughtExceptionHandler *prevUncaughtExceptionHandler = NULL;
     if (_backtrace == nil) {
       _backtrace = [[[dictionary objectForKey:@"stack"] description] copy];
     }
-    _nativeStack = [[dictionary objectForKey:@"nativeStack"] copy];
+    id nativeStackObject = [dictionary objectForKey:@"nativeStack"];
+     if (nativeStackObject) {
+       if ([nativeStackObject isKindOfClass:[NSArray class]]) {
+         nativeStackObject = [nativeStackObject copy];
+       } else if ([nativeStackObject isKindOfClass:[NSString class]]) {
+         nativeStackObject = [[nativeStackObject componentsSeparatedByString:@"\n"] retain];
+       } else {
+         nativeStackObject = nil;
+       }
+     }
+     _nativeStack = nativeStackObject;
     _dictionaryValue = [dictionary copy];
   }
   return self;
