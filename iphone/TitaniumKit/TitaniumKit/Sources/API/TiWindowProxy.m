@@ -576,6 +576,8 @@
       if (style != -1) {
         [theController setModalTransitionStyle:style];
       }
+
+      // Modal style
       UIModalPresentationStyle modalStyle = [TiUtils intValue:@"modalStyle" properties:dict def:-1];
       if (modalStyle != -1) {
         // modal transition style page curl must be done only in fullscreen
@@ -585,10 +587,24 @@
         }
       }
 
-      if ([TiUtils isIOSVersionOrGreater:@"13.0"]) {
+      // Sheets
+      if (@available(iOS 15, *)) {
+        NSArray<UISheetPresentationControllerDetent *> *modalSizes = [self mappedModalSizes:dict[@"modalSizes"]];
+        UISheetPresentationController *sheetPresentationController = (UISheetPresentationController *)theController.presentationController;
+
+        if (sheetPresentationController != nil) {
+          sheetPresentationController.detents = modalSizes;
+          sheetPresentationController.prefersGrabberVisible = YES;
+        }
+      }
+
+      // Force modal
+      if (@available(iOS 13, *)) {
         forceModal = [TiUtils boolValue:@"forceModal" properties:dict def:NO];
         theController.modalInPresentation = forceModal;
       }
+
+      // Animated
       BOOL animated = [TiUtils boolValue:@"animated" properties:dict def:YES];
       [[TiApp app] showModalController:theController animated:animated];
     } else {
@@ -643,6 +659,20 @@
       RELEASE_TO_NIL(closePromise);
     }
   }
+}
+
+- (NSArray<UISheetPresentationControllerDetent *> *)mappedModalSizes:(NSArray<id>*)modalSizes {
+  NSMutableArray *detents = [NSMutableArray arrayWithCapacity:modalSizes.count];
+
+  for (id modalSize in modalSizes) {
+    if ([modalSize isEqualToString:UISheetPresentationControllerDetentIdentifierMedium]) {
+      [detents addObject:[UISheetPresentationControllerDetent mediumDetent]];
+    } else if ([modalSize isEqualToString:UISheetPresentationControllerDetentIdentifierLarge]) {
+      [detents addObject:[UISheetPresentationControllerDetent largeDetent]];
+    }
+  }
+
+  return detents;
 }
 
 #pragma mark - TiOrientationController

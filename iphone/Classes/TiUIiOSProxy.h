@@ -156,6 +156,9 @@
 
 @property (nonatomic, readonly) NSNumber *MODAL_TRANSITION_STYLE_PARTIAL_CURL;
 
+@property (nonatomic, readonly) NSString *MODAL_SIZE_MEDIUM;
+@property (nonatomic, readonly) NSString *MODAL_SIZE_LARGE;
+
 #ifdef USE_TI_UIIOSBLURVIEW
 @property (nonatomic, readonly) NSNumber *BLUR_EFFECT_STYLE_EXTRA_LIGHT;
 @property (nonatomic, readonly) NSNumber *BLUR_EFFECT_STYLE_LIGHT;

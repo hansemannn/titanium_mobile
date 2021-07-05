@@ -781,7 +781,7 @@ MAKE_SYSTEM_PROP(SHORTCUT_ICON_TYPE_AUDIO, UIApplicationShortcutIconTypeAudio);
 MAKE_SYSTEM_PROP(SHORTCUT_ICON_TYPE_UPDATE, UIApplicationShortcutIconTypeUpdate);
 #endif
 
-//Modal Transition and Presentatiom
+// Modal Transition and Presentatiom
 MAKE_SYSTEM_PROP(MODAL_TRANSITION_STYLE_COVER_VERTICAL, UIModalTransitionStyleCoverVertical);
 MAKE_SYSTEM_PROP(MODAL_TRANSITION_STYLE_FLIP_HORIZONTAL, UIModalTransitionStyleFlipHorizontal);
 MAKE_SYSTEM_PROP(MODAL_TRANSITION_STYLE_CROSS_DISSOLVE, UIModalTransitionStyleCrossDissolve);
@@ -793,6 +793,24 @@ MAKE_SYSTEM_PROP(MODAL_PRESENTATION_FORMSHEET, UIModalPresentationFormSheet);
 MAKE_SYSTEM_PROP(MODAL_PRESENTATION_CURRENT_CONTEXT, UIModalPresentationCurrentContext);
 MAKE_SYSTEM_PROP(MODAL_PRESENTATION_OVER_CURRENT_CONTEXT, UIModalPresentationOverCurrentContext);
 MAKE_SYSTEM_PROP(MODAL_PRESENTATION_OVER_CURRENT_FULL_SCREEN, UIModalPresentationOverFullScreen);
+
+// Modal sizes
+- (NSString *)MODAL_SIZE_MEDIUM
+{
+  if (@available(iOS 15, *)) {
+    return UISheetPresentationControllerDetentIdentifierMedium;
+  }
+
+  return nil;
+}
+- (NSString *)MODAL_SIZE_LARGE
+{
+  if (@available(iOS 15, *)) {
+    return UISheetPresentationControllerDetentIdentifierLarge;
+  }
+
+  return nil;
+}
 
 #ifdef USE_TI_UIIOSFEEDBACKGENERATOR
 
