@@ -8,7 +8,11 @@
 
 #import <TitaniumKit/TiUIView.h>
 
+#ifdef __IPHONE_17_0
+@interface TiUIScrollableView : TiUIView <UIScrollViewDelegate, UIPageControlProgressDelegate> {
+#else
 @interface TiUIScrollableView : TiUIView <UIScrollViewDelegate> {
+#endif
   @private
 #ifdef TI_USE_AUTOLAYOUT
   UIScrollView *_scrollView;
@@ -34,6 +38,7 @@
   UIColor *currentPageIndicatorColor;
   CGFloat pagingControlAlpha;
   CGFloat pagingControlHeight;
+  BOOL pagingControlProgressEnabled;
   BOOL handlingPageControlEvent;
   BOOL scrollingEnabled;
   BOOL pagingControlOnTop;

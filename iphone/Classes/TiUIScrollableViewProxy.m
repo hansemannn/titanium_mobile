@@ -19,6 +19,7 @@
   [self initializeProperty:@"pagingControlColor" defaultValue:nil];
   [self initializeProperty:@"pageIndicatorTintColor" defaultValue:nil];
   [self initializeProperty:@"currentPageIndicatorTintColor" defaultValue:nil];
+  [self initializeProperty:@"pagingControlProgressEnabled" defaultValue:@(NO)];
   [self initializeProperty:@"pagingControlHeight" defaultValue:NUMINT(20)];
   [self initializeProperty:@"showPagingControl" defaultValue:NUMBOOL(NO)];
   [self initializeProperty:@"pagingControlAlpha" defaultValue:NUMFLOAT(1.0)];

@@ -650,6 +650,24 @@
   }
 }
 
+- (void)setPagingControlProgressEnabled_:(id)args
+{
+  pagingControlProgressEnabled = [TiUtils boolValue:args def:NO];
+
+#ifdef __IPHONE_17_0
+  if (pagingControlProgressEnabled) {
+    if (@available(iOS 17.0, *)) {
+      UIPageControlProgress *progress = [UIPageControlProgress new];
+      progress.delegate = self;
+      pageControl.progress = progress;
+    }
+  } else {
+    pageControl.progress.delegate = nil;
+    pageControl.progress = nil;
+  }
+#endif
+}
+
 - (void)setPreferredIndicatorImage_:(id)args
 {
   if (![TiUtils isIOSVersionOrGreater:@"14.0"]) {
@@ -928,6 +946,22 @@
     [_dotsView setCurrentPage:_currentPage];
 #endif
 }
+
+#ifdef __IPHONE_17_0
+- (void)pageControlProgressVisibilityDidChange:(UIPageControlProgress *)progress
+{
+  [self.proxy fireEvent:@"pageControlProgressVisibilityChange"
+             withObject:@{
+               @"progress" : @(progress.currentProgress),
+               @"visible" : @(progress.progressVisible)
+             }];
+}
+
+- (float)pageControlProgress:(UIPageControlProgress *)progress initialProgressForPage:(NSInteger)page
+{
+  return [TiUtils intValue:[self.proxy valueForKey:@"pageControlProgress"] def:0];
+}
+#endif
 
 @end
 
