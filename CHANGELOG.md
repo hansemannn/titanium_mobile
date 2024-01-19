@@ -1,4 +1,4 @@
-# [12.3.0](https://github.com/tidev/titanium_mobile/compare/12_2_X...12.3.0) (2024-01-12)
+# [12.3.0](https://github.com/tidev/titanium_mobile/compare/12_2_X...12.3.0) (2024-01-19)
 
 ## About this release
 
@@ -6,14 +6,8 @@ Titanium SDK 12.3.0 is a minor release of the SDK, addressing high-priority issu
 
 ## Community Credits
 
-* Hans Knöchel
-  * support multi-scene applications ([bfc87a6](https://github.com/tidev/titanium_mobile/commit/bfc87a6517f0b70b82ea760b8d052381bddf1ff4))
-  * add iOS 17+ spring animations ([be053b0](https://github.com/tidev/titanium_mobile/commit/be053b07ab0a51158e3a6d0e8e7c368f1935aaa5))
-  * update ti.map to 7.3.1 ([10535bc](https://github.com/tidev/titanium_mobile/commit/10535bc9f48949c15ae523ecd3e1739ca130884b))
-  * include new versions of ti.map ([e4b3974](https://github.com/tidev/titanium_mobile/commit/e4b397468a01e0ade21ba0a9d41f37cf8d76895f))
-  * bump master to 12.3.0 ([acf6b15](https://github.com/tidev/titanium_mobile/commit/acf6b159bf246126c36ce4420d6f38bb415d940a))
-
 * Michael Gangolf
+  * update ti.map ([241ba55](https://github.com/tidev/titanium_mobile/commit/241ba55b130671ac07e7309941520b2ed1a86058))
   * update minimum node.js version to 16.x ([af08e72](https://github.com/tidev/titanium_mobile/commit/af08e72c3fccdeade7f10e4e983c2c48dea6f491))
   * set correct title after titleAttributes update ([53738a1](https://github.com/tidev/titanium_mobile/commit/53738a1d05f0945841cb2247bc0e86fb413e0bc3))
   * optimize TiProperties ([e364209](https://github.com/tidev/titanium_mobile/commit/e3642099bacfebaaa0c0835a9a39dd9c2a521934))
@@ -36,9 +30,17 @@ Titanium SDK 12.3.0 is a minor release of the SDK, addressing high-priority issu
   * remove more appc/jira links ([6726c2c](https://github.com/tidev/titanium_mobile/commit/6726c2cee7c451f81b154cab74ecd0d004d25104))
   * add empty build.gradle ([2c965e4](https://github.com/tidev/titanium_mobile/commit/2c965e4e1e0950a34f7ef777614260c86b063b7a))
 
+* Hans Knöchel
+  * move issue ([f83062b](https://github.com/tidev/titanium_mobile/commit/f83062b6cda6e2a1aa26fc06abe9b99228f1d6cb))
+  * add 12.3.0 changelog ([1e58137](https://github.com/tidev/titanium_mobile/commit/1e58137bb4886324ceb4bcf527b7550e963b10bc))
+  * support multi-scene applications ([bfc87a6](https://github.com/tidev/titanium_mobile/commit/bfc87a6517f0b70b82ea760b8d052381bddf1ff4))
+  * add iOS 17+ spring animations ([be053b0](https://github.com/tidev/titanium_mobile/commit/be053b07ab0a51158e3a6d0e8e7c368f1935aaa5))
+  * update ti.map to 7.3.1 ([10535bc](https://github.com/tidev/titanium_mobile/commit/10535bc9f48949c15ae523ecd3e1739ca130884b))
+  * include new versions of ti.map ([e4b3974](https://github.com/tidev/titanium_mobile/commit/e4b397468a01e0ade21ba0a9d41f37cf8d76895f))
+  * bump master to 12.3.0 ([acf6b15](https://github.com/tidev/titanium_mobile/commit/acf6b159bf246126c36ce4420d6f38bb415d940a))
+
 * Brianggalvez
   * support for html in AttributedStrings ([ca4a7a9](https://github.com/tidev/titanium_mobile/commit/ca4a7a9e77a3c88d9790671eb8abf8d837c409bd))
-
 
 ## Bug Fixes
 
@@ -58,6 +60,7 @@ Titanium SDK 12.3.0 is a minor release of the SDK, addressing high-priority issu
 
 ### Multiple platforms
 
+* add iOS 17+ spring animations ([be053b0](https://github.com/tidev/titanium_mobile/commit/be053b07ab0a51158e3a6d0e8e7c368f1935aaa5))
 * update minimum node.js version to 16.x ([af08e72](https://github.com/tidev/titanium_mobile/commit/af08e72c3fccdeade7f10e4e983c2c48dea6f491))
 
 ### Android platform
@@ -70,7 +73,6 @@ Titanium SDK 12.3.0 is a minor release of the SDK, addressing high-priority issu
 
 ### iOS platform
 
-* add iOS 17+ spring animations ([be053b0](https://github.com/tidev/titanium_mobile/commit/be053b07ab0a51158e3a6d0e8e7c368f1935aaa5))
 * add cli.ignoreLog to ios ([eabedaa](https://github.com/tidev/titanium_mobile/commit/eabedaaf1e7806134b3be9f3c506427b94f524cb))
 * support for html in AttributedStrings ([ca4a7a9](https://github.com/tidev/titanium_mobile/commit/ca4a7a9e77a3c88d9790671eb8abf8d837c409bd))
 * support multi-scene applications ([bfc87a6](https://github.com/tidev/titanium_mobile/commit/bfc87a6517f0b70b82ea760b8d052381bddf1ff4))
@@ -81,7 +83,7 @@ Titanium SDK 12.3.0 is a minor release of the SDK, addressing high-priority issu
 | Module      | Android version | iOS Version |
 | ----------- | --------------- | ----------- |
 | facebook | 12.1.0 | 14.0.0 |
-| ti.map | 5.6.0 | 7.3.1 |
+| ti.map | 5.6.1 | 7.3.1 |
 | ti.webdialog | 2.3.0 | 3.0.2 |
 | ti.playservices | 18.2.0 | n/a |
 | ti.identity | 3.1.0 | 5.0.0 |
