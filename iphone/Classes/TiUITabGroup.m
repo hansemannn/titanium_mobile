@@ -692,12 +692,14 @@ DEFINE_EXCEPTIONS
 {
   TiThreadPerformOnMainThread(
       ^{
-        [self.tabController willMoveToParentViewController:TiApp.controller.topPresentedController];
-
+        // Use the hosting controller of this view to ensure proper containment
+        UIViewController *parentController = [(TiWindowProxy *)[self proxy] windowHoldingController];
+        // Establish proper containment: add child, add its view, then notify didMove
+        [parentController addChildViewController:self.tabController];
         self.tabController.view.frame = self.bounds;
         [self addSubview:self.tabController.view];
         isTabBarHidden = NO;
-        [TiApp.controller.topPresentedController addChildViewController:self.tabController];
+        [self.tabController didMoveToParentViewController:parentController];
       },
       NO);
 }
